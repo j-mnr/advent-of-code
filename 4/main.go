@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	// marker is used to "remove" called out values from the bingo numbers.
 	marker = 0
 )
 
@@ -19,24 +20,24 @@ func main() {
 	s := bufio.NewScanner(f)
 	s.Scan()
 	bingoNumbers := buildNumbers(strings.Split(s.Text(), ","))
-	// Make Boards
-	fmt.Println(bingoNumbers)
 	bingoBoards := makeBoards(s)
+	winningBoards := make(map[int]struct{})
 	for _, bn := range bingoNumbers {
 		for i, board := range bingoBoards {
 			for j, row := range board {
+				if _, found := winningBoards[i]; found { // Skip winning boards
+					break
+				}
 				for k, n := range row {
 					// Mark Bingo Numbers on boards
 					if bn == n {
 						bingoBoards[i][j][k] = marker
-						// Check board for winner -- needs logic
-						//  * Check rows all have marker
-						//  * Check cols all have marker
-						//  * Check diags all have marker
 						if checkWin(bingoBoards[i]) {
-							// Calculate Winning board score
-							fmt.Println(int(bn) * sum(bingoBoards[i]))
-							goto END
+							winningBoards[i] = struct{}{}
+							if len(winningBoards) == len(bingoBoards) {
+								fmt.Println(int(bn) * bingoBoards[i].sum())
+								return
+							}
 						}
 						goto NEXT_BOARD
 					}
@@ -45,22 +46,12 @@ func main() {
 		NEXT_BOARD:
 		}
 	}
-END:
-	// for _, bb := range bingoBoards {
-	// 	fmt.Println(bb)
-	// }
 }
 
-func sum(b bingoBoard) int {
-	sum := 0
-	for _, row := range b {
-		for _, n := range row {
-			sum += int(n)
-		}
-	}
-	return sum
-}
-
+// checkWin checks board for winning combinations of
+//  * entire row full of marker
+//  * entire column full of marker
+//  * either diagonal full of marker
 func checkWin(b bingoBoard) bool {
 	rowCnt := 0
 	colCnt := [5]int{}
@@ -72,14 +63,12 @@ func checkWin(b bingoBoard) bool {
 			}
 		}
 		if rowCnt == 5 {
-			fmt.Println(b)
 			return true
 		}
 		rowCnt = 0
 	}
 	for _, c := range colCnt {
 		if c == 5 {
-			fmt.Println(b)
 			return true
 		}
 	}
@@ -94,12 +83,12 @@ func checkWin(b bingoBoard) bool {
 		}
 	}
 	if leftDiag == 5 || rightDiag == 5 {
-		fmt.Println(b)
 		return true
 	}
 	return false
 }
 
+// buildNumbers takes the first line of the input and maps them to uint8s.
 func buildNumbers(nums []string) []uint8 {
 	bingoNumbers := make([]uint8, len(nums))
 	for i, n := range nums {
@@ -108,8 +97,22 @@ func buildNumbers(nums []string) []uint8 {
 	return bingoNumbers
 }
 
+// bingoBoard is a 5 by 5 matrix. We can save some space making it uint8
+// because the numbers on a bingo board don't go past 255.
 type bingoBoard [5][5]uint8
 
+// sum adds all of the numbers remaining on the board.
+func (b bingoBoard) sum() int {
+	sum := 0
+	for _, row := range b {
+		for _, n := range row {
+			sum += int(n)
+		}
+	}
+	return sum
+}
+
+// makeBoards makes all of the 5 by 5 bingo boards from the input.
 func makeBoards(s *bufio.Scanner) []bingoBoard {
 	bb := make([]bingoBoard, 0, 5)
 	n := 0
@@ -126,12 +129,11 @@ func makeBoards(s *bufio.Scanner) []bingoBoard {
 		}
 		row++
 	}
-	// for _, bb := range bb {
-	// 	fmt.Println(bb)
-	// }
 	return bb
 }
 
+// atoi is a small wrapper to strconv.Atoi to return a uin8. This function will
+// panic if the string is not a number.
 func atoi(num string) uint8 {
 	d, err := strconv.Atoi(num)
 	if err != nil {
