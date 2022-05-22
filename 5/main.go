@@ -25,18 +25,38 @@ func part1() {
 	for scr.Scan() {
 		// Need to parse line segments
 		x1, x2, y1, y2 := Coords(scr.Text())
-		dx, dy := x2-x1, y2-y1
-		if dx != 0 && dy != 0 {
-			continue
-		}
-		fmt.Println(dx, dy)
-		if dx == 0 {
-			for i := y1; i <= y2; i++ {
+		// part1 shenanigans
+		// if x1 != x2 && y1 != y2 {
+		// 	continue
+		// }
+		step := 1
+		switch {
+		case x1 != x2 && y1 != y2:
+			xstep := 1
+			ystep := 1
+			if x1 > x2 {
+				xstep = -1
+			}
+			if y1 > y2 {
+				ystep = -1
+			}
+			for i := x1; i != x2+xstep; i += xstep {
+				graph[y1][x1]++
+				y1 += ystep
+				x1 += xstep
+			}
+		case x1 == x2:
+			if y1 > y2 {
+				step = -1
+			}
+			for i := y1; i != y2+step; i += step {
 				graph[i][x1]++
 			}
-		}
-		if dy == 0 {
-			for i := x1; i <= x2; i++ {
+		case y1 == y2:
+			if x1 > x2 {
+				step = -1
+			}
+			for i := x1; i != x2+step; i += step {
 				graph[y1][i]++
 			}
 		}
@@ -61,12 +81,6 @@ func Coords(input string) (x1, x2, y1, y2 int) {
 	y1, _ = strconv.Atoi(p1[1])
 	x2, _ = strconv.Atoi(p2[0])
 	y2, _ = strconv.Atoi(p2[1])
-	if x1 > x2 {
-		x1, x2 = x2, x1
-	}
-	if y1 > y2 {
-		y1, y2 = y2, y1
-	}
 	return
 }
 
