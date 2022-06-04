@@ -18,19 +18,30 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	var ctr [9]uint64
 	split := bytes.Split(b, []byte{','})
-	fish := make([]int, 0, len(split)*2)
 	for _, bsl := range split {
-		fish = append(fish, int(bsl[0] - '0'))
+		ctr[int8(bsl[0]-'0')]++
 	}
-	for i := 0; i < 80; i++ {
-		for j := range fish {
-			fish[j]--
-			if fish[j] < 0 {
-				fish[j] = 6
-				fish = append(fish, 8)
+	fmt.Println(ctr)
+	for i := 0; i < 256; i++ {
+		tmp := ctr[0]
+		for j := 0; j < 9; j++ {
+			if j == len(ctr)-1 {
+				ctr[j] = tmp
+				ctr[len(ctr)-3] += tmp
+				break
 			}
+			ctr[j] = ctr[j+1]
 		}
 	}
-	fmt.Println(len(fish))
+	fmt.Println(ctr, add(ctr))
+}
+
+func add(s [9]uint64) uint64 {
+	var sum uint64
+	for _, n := range s {
+		sum += uint64(n)
+	}
+	return sum
 }
