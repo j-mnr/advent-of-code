@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"io"
-	"io/ioutil"
+	"bytes"
+	"log"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -19,37 +16,32 @@ var input = strings.NewReader(`
 675
 1456`[1:])
 
-func main() {
-	f, err := os.Open("input")
-	if err != nil {
-		panic(err)
-	}
-	nums := Nums(f)
-	fmt.Println(nums)
-	for i, j := 0, len(nums)-1; i <= j; {
-		sum := nums[i] + nums[j]
-		switch {
-		case sum < 2020:
-			i++
-		case sum > 2020:
-			j--
-		case sum == 2020:
-			fmt.Println(nums[i], nums[j], nums[i]*nums[j])
-			return
-		}
-	}
-}
+const target = 2020
 
-func Nums(r io.Reader) []int {
-	nums := make([]int, 0, 1000)
-	scr := bufio.NewScanner(r)
-	for scr.Scan() {
-		n, err := strconv.Atoi(scr.Text())
-		if err != nil {
-			panic(err)
-		}
-		nums = append(nums, n)
+func main() {
+	f, err := os.ReadFile("input")
+	if err != nil {
+		log.Fatal(err)
 	}
-	sort.Ints(nums)
-	return nums
+	m := make(map[int]int, 200)
+	for _, line := range bytes.Split(f, []byte("\n"))[:200] {
+		n, err := strconv.Atoi(string(line))
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		m[n]++
+	}
+
+	for y := range m {
+		s := target - y
+		for x := range m {
+			z := s - x
+			if _, found := m[z]; found {
+				log.Printf("%d+%d+%d=2020 | %d*%d*%d=%d",
+					z, y, x, z, y, x, z*y*x)
+				return
+			}
+		}
+	}
 }
