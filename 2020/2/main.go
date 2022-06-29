@@ -22,18 +22,21 @@ func main() {
 	scr := bufio.NewScanner(f)
 	for scr.Scan() {
 		flds := strings.Fields(scr.Text())
-		minmax, ltr, pass := strings.Split(flds[0], "-"), flds[1][0], flds[2]
-		min, err := strconv.Atoi(minmax[0])
+		posns, ltr, pass := strings.Split(flds[0], "-"), flds[1][0], flds[2]
+		pos1, err := strconv.Atoi(posns[0])
 		if err != nil {
 			log.Fatal(err)
 		}
-		max, err := strconv.Atoi(minmax[1])
+		pos2, err := strconv.Atoi(posns[1])
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println(min, max, string(ltr), pass)
+		log.Println(pos1-1, pos2-1, string(ltr), pass)
 
-		if c := strings.Count(pass, string(ltr)); c >= min && c <= max {
+		switch {
+		case pass[pos1-1] == ltr && pass[pos2-1] == ltr:
+			// no-op
+		case pass[pos1-1] == ltr || pass[pos2-1] == ltr:
 			valid++
 		}
 	}
