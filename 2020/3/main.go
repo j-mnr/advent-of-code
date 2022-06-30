@@ -27,17 +27,32 @@ func main() {
 		log.Fatal(err)
 	}
 	scr := bufio.NewScanner(f)
-	area := make([]string, 0, 323)
-	for scr.Scan() {
-		area = append(area, scr.Text())
+	area := make([]string, 323)
+	for i := 0; scr.Scan(); i++ {
+		area[i] = scr.Text()
 	}
 
 	strip := len(area[0])
-	trees := 0
-	for x, y := 3, 1; y != len(area); x, y = x+3, y+1 {
-		if area[y][x%strip] == '#' {
-			trees++
+	trees := make(map[int]int)
+	for _, z := range []int{1, 3, 5, 7} {
+		if z == 1 {
+			for x, y := 1, 2; y < len(area); x, y = x+1, y+2 {
+				if y < len(area)-1 && area[y][x%strip] == '#' {
+					fmt.Println(y, x, z)
+					trees[2]++
+				}
+			}
+		}
+		for x, y := z, 1; y != len(area); x, y = x+z, y+1 {
+			if area[y][x%strip] == '#' {
+				trees[z]++
+			}
 		}
 	}
 	fmt.Println(trees)
+	product := 1
+	for _, k := range trees {
+		product *= k
+	}
+	fmt.Println(product)
 }
