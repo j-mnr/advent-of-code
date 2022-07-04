@@ -32,27 +32,20 @@ func main() {
 		area[i] = scr.Text()
 	}
 
-	strip := len(area[0])
-	trees := make(map[int]int)
-	for _, z := range []int{1, 3, 5, 7} {
-		if z == 1 {
-			for x, y := 1, 2; y < len(area); x, y = x+1, y+2 {
-				if y < len(area)-1 && area[y][x%strip] == '#' {
-					fmt.Println(y, x, z)
-					trees[2]++
-				}
-			}
-		}
-		for x, y := z, 1; y != len(area); x, y = x+z, y+1 {
-			if area[y][x%strip] == '#' {
-				trees[z]++
-			}
-		}
+	prd := 1
+	for _, xy := range [][]int{{1, 1}, {3, 1}, {5, 1}, {7, 1}, {1, 2}} {
+		prd *= traverse(xy[0], xy[1], area)
 	}
-	fmt.Println(trees)
-	product := 1
-	for _, k := range trees {
-		product *= k
+	fmt.Println(prd)
+}
+
+func traverse(rightStep, downStep int, area []string) (total int) {
+	for right, down := rightStep, downStep; down < len(area); {
+		row := area[down]
+		if row[right%len(row)] == '#' {
+			total++
+		}
+		right, down = right+rightStep, down+downStep
 	}
-	fmt.Println(product)
+	return total
 }
