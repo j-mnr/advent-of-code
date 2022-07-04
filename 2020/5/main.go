@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 )
 
 var test = []byte(`
@@ -18,8 +19,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	max := 0
 	lines := bytes.Split(f, []byte("\n"))
+	seats := make([]int, 0, len(lines))
 	for _, line := range lines[:len(lines)-1] {
 		lo, hi := 0, 127
 		for _, r := range line[:7] {
@@ -43,9 +44,13 @@ func main() {
 			}
 		}
 		col := lo
-		if val := row*8 + col; max < val {
-			max = val
+		seats = append(seats, row*8+col)
+	}
+	sort.Ints(seats)
+	for prev, i := seats[0], 1; i < len(seats); prev, i = seats[i], i+1 {
+		if seats[i] != prev+1 {
+			fmt.Println("YOUR SEAT SIR:", prev+1)
+			break
 		}
 	}
-	fmt.Println(max)
 }
