@@ -53,7 +53,9 @@ func main() {
 		preamble[i] = n
 	}
 	for i, n := range nums[25:] {
-		sums = map[int]struct{}{}
+		for k := range sums {
+			delete(sums, k)
+		}
 		var j int
 		for _, v := range preamble {
 			if _, found := sums[n-v]; found {
