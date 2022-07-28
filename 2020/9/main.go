@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -52,6 +54,7 @@ func main() {
 	for i, n := range nums[:25] {
 		preamble[i] = n
 	}
+	target := 0
 	for i, n := range nums[25:] {
 		for k := range sums {
 			delete(sums, k)
@@ -66,9 +69,37 @@ func main() {
 			j++
 		}
 		if j == len(preamble) {
-			fmt.Println("WE GOT HIM", n)
+			target = n
 			break
 		}
 		preamble[i%25] = n
 	}
+
+	contiguous := make([]int, 0, len(nums))
+	for i, n := range nums {
+		if n >= target {
+			fmt.Println("Something went wrong...")
+			break
+		}
+		contiguous, _ = contiguousSet(nums[i:], target)
+		if len(contiguous) > 0 {
+			break
+		}
+	}
+	sort.Ints(contiguous)
+	fmt.Println(contiguous[len(contiguous)-1] + contiguous[0])
+}
+
+func contiguousSet(nums []int, target int) ([]int, error) {
+	contiguous := make([]int, 0, len(nums))
+	for _, n := range nums {
+		target -= n
+		contiguous = append(contiguous, n)
+		if target == 0 {
+			break
+		} else if target < 0 {
+			return nil, errors.New("These are not the nums you are looking for")
+		}
+	}
+	return contiguous, nil
 }
