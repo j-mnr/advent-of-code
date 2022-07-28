@@ -20,6 +20,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer f.Close()
+
 	bags := make(map[string]*bag)
 	for scr := bufio.NewScanner(f); scr.Scan(); {
 		pName, kids, found := bytes.Cut(scr.Bytes(), []byte(" bags contain "))
