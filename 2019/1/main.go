@@ -13,14 +13,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	scr := bufio.NewScanner(fl)
 	sum := 0
-	for scr.Scan() {
+	for scr := bufio.NewScanner(fl); scr.Scan(); {
 		n, err := strconv.Atoi(scr.Text())
 		if err != nil {
 			log.Fatal(err)
 		}
-		sum += (n/3 - 2)
+		for n = n/3 - 2; n > 0; n = n/3 - 2 {
+			sum += n
+		}
 	}
 	fmt.Println(sum)
 }
