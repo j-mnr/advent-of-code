@@ -18,10 +18,14 @@ const (
 	Halt Opcode = 99
 )
 
+const (
+	target = 19690720
+)
+
 type instruction struct {
-	Op                       Opcode
-	InRegister1, InRegister2 uint
-	OutRegister              uint
+	Op         Opcode
+	Noun, Verb uint
+	OutAddress uint
 }
 
 func main() {
@@ -30,39 +34,45 @@ func main() {
 		log.Fatal(err)
 	}
 	var instructions []instruction
-	sepInstructions := bytes.Split(f, []byte(","))
-	i := 0
-	for ; i < len(sepInstructions); i += 4 {
+	for i, sepInstructions := 0, bytes.Split(f, []byte(",")); i < len(sepInstructions); i += 4 {
 		op := Opcode(atoui(sepInstructions[i]))
 		if op == 99 {
 			break
 		}
 		instructions = append(instructions, instruction{
-			Op:          op,
-			InRegister1: atoui(sepInstructions[i+1]),
-			InRegister2: atoui(sepInstructions[i+2]),
-			OutRegister: atoui(sepInstructions[i+3]),
+			Op:         op,
+			Noun:       atoui(sepInstructions[i+1]),
+			Verb:       atoui(sepInstructions[i+2]),
+			OutAddress: atoui(sepInstructions[i+3]),
 		})
 	}
-	// Part 1 shenanigans
-	instructions[0].InRegister1 = 12
-	instructions[0].InRegister2 = 2
-	// NOTE(jay): This may be needed for Part 2?
-	// var finalRegs []uint
-	// for ; i < len(sepInstructions); i++ {
-	// 	finalRegs = append(finalRegs, atoui(bytes.TrimSpace(sepInstructions[i])))
-	// }
-	for _, instr := range instructions {
-		rVal1, rVal2 := load(instructions, instr.InRegister1), load(instructions, instr.InRegister2)
-		outReg := load(instructions, instr.OutRegister)
-		switch instr.Op {
-		case 1:
-			*outReg = *rVal1 + *rVal2
-		case 2:
-			*outReg = *rVal1 * *rVal2
+	cpyInstr := make([]instruction, len(instructions))
+	copy(cpyInstr, instructions)
+	var got uint
+	var lo, hi uint = 0, 99
+	for got != target && hi > 0 && lo < 99 {
+		copy(cpyInstr, instructions)
+		cpyInstr[0].Noun = lo
+		cpyInstr[0].Verb = hi
+		for _, instr := range cpyInstr {
+			rVal1, rVal2 := load(cpyInstr, instr.Noun), load(cpyInstr, instr.Verb)
+			outReg := load(cpyInstr, instr.OutAddress)
+			switch instr.Op {
+			case 1:
+				*outReg = *rVal1 + *rVal2
+			case 2:
+				*outReg = *rVal1 * *rVal2
+			}
+		}
+		got = uint(cpyInstr[0].Op)
+		switch {
+		case got > target:
+			hi--
+		case got < target:
+			lo++
 		}
 	}
-	fmt.Println(instructions[0].Op)
+	fmt.Println(100*cpyInstr[0].Noun + cpyInstr[0].Verb)
 }
 
 func load(instructions []instruction, registerPos uint) *uint {
@@ -71,11 +81,11 @@ func load(instructions []instruction, registerPos uint) *uint {
 	case 0:
 		return ((*uint)(unsafe.Pointer(&instructions[registerPos/4].Op)))
 	case 1:
-		return &instructions[registerPos/4].InRegister1
+		return &instructions[registerPos/4].Noun
 	case 2:
-		return &instructions[registerPos/4].InRegister2
+		return &instructions[registerPos/4].Verb
 	case 3:
-		return &instructions[registerPos/4].OutRegister
+		return &instructions[registerPos/4].OutAddress
 	default:
 		panic("This should never be reached")
 	}
