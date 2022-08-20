@@ -6,15 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
+	"sort"
 )
-
-var r = strings.NewReader(`
-{([(<{}[<>[]}>{[]{[(<()>
-[[<[([]))<([[{}[[()]]]
-[{[{({}]{}}([{[{{{}}([]
-[<(<(<(<{}))><([]([]()
-<{([([[(<>()){}]>(<<{{`[1:])
 
 var (
 	closing = map[byte]byte{
@@ -25,10 +18,10 @@ var (
 	}
 	openers = []byte{'{', '[', '(', '<'}
 	points  = map[byte]int{
-		')': 3,
-		']': 57,
-		'}': 1197,
-		'>': 25137,
+		'(': 1,
+		'[': 2,
+		'{': 3,
+		'<': 4,
 	}
 )
 
@@ -37,28 +30,32 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	var scores []int
 	scr := bufio.NewScanner(r)
-	var illChars []byte
 	for scr.Scan() {
 		var stack []byte
 		var open byte
+		var corrupted bool
 		for _, b := range scr.Bytes() {
 			if bytes.ContainsRune(openers, rune(b)) {
 				stack = append(stack, b)
 				continue
 			}
 			open, stack = stack[len(stack)-1], stack[:len(stack)-1]
-			if o, ok := closing[b]; !ok {
-				panic("What the hell is this? " + string(b))
-			} else if o != open {
-				illChars = append(illChars, b)
+			if o := closing[b]; o != open {
+				corrupted = true
 				break
 			}
 		}
+		if corrupted {
+			continue
+		}
+		score := 0
+		for i := len(stack) - 1; i >= 0; i-- {
+			score = score*5 + points[stack[i]]
+		}
+		scores = append(scores, score)
 	}
-	score := 0
-	for _, b := range illChars {
-		score += points[b]
-	}
-	fmt.Println(score)
+	sort.Ints(scores)
+	fmt.Println(scores[len(scores)/2])
 }
