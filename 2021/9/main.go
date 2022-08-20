@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -30,23 +31,47 @@ func main() {
 		matrix = append(matrix, nums)
 	}
 
-	lowsSum := 0
+	var basins []int
+	visited := make(map[[2]int]struct{})
 	for i, row := range matrix {
 		for j, num := range row {
-			if isLowPoint(num, i, j, matrix) {
-				fmt.Println(num, i, j)
-				lowsSum += num + 1
+			if _, ok := visited[[2]int{i, j}]; ok || num == 9 {
+				continue
 			}
+
+			basinSize := 0
+			stack := [][2]int{{i, j}}
+			for pair := [2]int{}; len(stack) != 0; {
+				pair, stack = stack[len(stack)-1], stack[:len(stack)-1]
+				i, j := pair[0], pair[1]
+				if _, ok := visited[pair]; ok {
+					continue
+				}
+				visited[pair] = struct{}{}
+				basinSize++
+				stack = append(stack, addNeighbors(i, j, matrix)...)
+			}
+			basins = append(basins, basinSize)
 		}
 	}
-	fmt.Println(lowsSum)
+	sort.Sort(sort.Reverse(sort.IntSlice(basins)))
+	fmt.Println(basins[0] * basins[1] * basins[2])
 }
 
-func isLowPoint(num, i, j int, matrix [][]int) bool {
+func addNeighbors(i, j int, matrix [][]int) [][2]int {
+	var nbors [][2]int
 	n, m := len(matrix)-1, len(matrix[0])-1
-	if (i > 0 && num >= matrix[i-1][j]) || (j > 0 && num >= matrix[i][j-1]) ||
-		(i < n && num >= matrix[i+1][j]) || (j < m && num >= matrix[i][j+1]) {
-		return false
+	if i > 0 && matrix[i-1][j] != 9 {
+		nbors = append(nbors, [2]int{i - 1, j})
 	}
-	return true
+	if j > 0 && matrix[i][j-1] != 9 {
+		nbors = append(nbors, [2]int{i, j - 1})
+	}
+	if i < n && matrix[i+1][j] != 9 {
+		nbors = append(nbors, [2]int{i + 1, j})
+	}
+	if j < m && matrix[i][j+1] != 9 {
+		nbors = append(nbors, [2]int{i, j + 1})
+	}
+	return nbors
 }
