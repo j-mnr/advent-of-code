@@ -5,20 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 )
-
-var r = strings.NewReader(`
-5483143223
-2745854711
-5264556173
-6141336146
-6357385478
-4167524645
-2176841721
-6882881134
-4846848554
-5283751526`[1:])
 
 func main() {
 	r, err := os.Open("input")
@@ -34,8 +21,9 @@ func main() {
 		}
 	}
 
-	nflashes := 0
-	for step := 0; step < 100; step++ {
+	nSteps := 0
+	for !allFlashed(octopi) {
+		nSteps++
 		var queue [][2]int
 		for i, row := range octopi {
 			for j := range row {
@@ -44,7 +32,6 @@ func main() {
 					continue
 				}
 				octopi[i][j] = 0
-				nflashes++
 				queue = append(queue, getNeighbors(i, j, octopi)...)
 			}
 		}
@@ -52,7 +39,6 @@ func main() {
 		for pair := [2]int{}; len(queue) != 0; {
 			pair, queue = queue[0], queue[1:]
 			i, j := pair[0], pair[1]
-			// fmt.Println(len(queue), queue, octopi[i][j])
 			if octopi[i][j] == 0 { // Don't give more energy
 				continue
 			}
@@ -61,15 +47,11 @@ func main() {
 				continue
 			}
 			octopi[i][j] = 0
-			nflashes++
 			queue = append(queue, getNeighbors(i, j, octopi)...)
 		}
 	}
 
-	for _, row := range octopi {
-		fmt.Println(row)
-	}
-	fmt.Println(nflashes)
+	fmt.Println(nSteps)
 }
 
 func getNeighbors(i, j int, octopi [10][10]int) (queue [][2]int) {
@@ -98,4 +80,15 @@ func getNeighbors(i, j int, octopi [10][10]int) (queue [][2]int) {
 		queue = append(queue, [2]int{i + 1, j - 1})
 	}
 	return queue
+}
+
+func allFlashed(sl [10][10]int) bool {
+	for _, row := range sl {
+		for _, n := range row {
+			if n != 0 {
+				return false
+			}
+		}
+	}
+	return true
 }
