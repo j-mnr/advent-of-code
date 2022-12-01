@@ -32,5 +32,7 @@ func main() {
 		kcalCount = append(kcalCount, sum)
 	}
 	sort.Ints(kcalCount)
-	fmt.Println("The elf with the most calories has:", kcalCount[len(kcalCount)-1], "calories")
+	fmt.Println("The three elves with the most calories have:",
+		kcalCount[len(kcalCount)-1]+kcalCount[len(kcalCount)-2]+kcalCount[len(kcalCount)-3],
+		"calories")
 }
