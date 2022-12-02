@@ -11,13 +11,13 @@ import (
 type choice string
 
 const (
-	opRock     choice = "A"
-	opPaper    choice = "B"
-	opScissors choice = "C"
+	oppRock     choice = "A"
+	oppPaper    choice = "B"
+	oppScissors choice = "C"
 
-	myRock     choice = "X"
-	myPaper    choice = "Y"
-	myScissors choice = "Z"
+	wantLose choice = "X"
+	wantDraw choice = "Y"
+	wantWin  choice = "Z"
 )
 
 type point uint
@@ -49,59 +49,45 @@ func main() {
 	score := point(0)
 	scr := bufio.NewScanner(f)
 	for scr.Scan() {
-		op, my, ok := strings.Cut(scr.Text(), " ")
+		opp, wantOut, ok := strings.Cut(scr.Text(), " ")
 		if !ok {
 			fmt.Println("Could not cut", scr.Text())
 			continue
 		}
-		score += outcome(choice(op), choice(my))
-		score += convert(choice(my))
+		score += outcome(choice(opp), choice(wantOut))
 	}
 	fmt.Println("score:", score)
 }
 
-func outcome(op, my choice) point {
-	switch op {
-	case opRock:
-		switch my {
-		case myRock:
-			return draw
-		case myPaper:
-			return win
-		case myScissors:
-			return lose
+func outcome(opp, want choice) point {
+	switch opp {
+	case oppRock:
+		switch want {
+		case wantLose:
+			return lose + scissors
+		case wantDraw:
+			return draw + rock
+		case wantWin:
+			return win + paper
 		}
-	case opPaper:
-		switch my {
-		case myRock:
-			return lose
-		case myPaper:
-			return draw
-		case myScissors:
-			return win
+	case oppPaper:
+		switch want {
+		case wantLose:
+			return lose + rock
+		case wantDraw:
+			return draw + paper
+		case wantWin:
+			return win + scissors
 		}
-	case opScissors:
-		switch my {
-		case myRock:
-			return win
-		case myPaper:
-			return lose
-		case myScissors:
-			return draw
+	case oppScissors:
+		switch want {
+		case wantLose:
+			return lose + paper
+		case wantDraw:
+			return draw + scissors
+		case wantWin:
+			return win + rock
 		}
 	}
 	panic("Shouldn't reach here")
-}
-
-func convert(my choice) point {
-	switch my {
-	case myScissors:
-		return scissors
-	case myPaper:
-		return paper
-	case myRock:
-		return rock
-	default:
-		panic("Shouldn't reach here")
-	}
 }
