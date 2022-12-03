@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
-	"log"
+	"io"
 	"os"
 	"strings"
 )
@@ -35,22 +35,29 @@ func (i item) priority() uint8 {
 func main() {
 	f, err := os.Open("input")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer f.Close()
-	var items []item
-	scr := bufio.NewScanner(f)
-	for scr.Scan() {
-		n := len(scr.Text()) / 2
-		first, second := scr.Text()[:n], scr.Text()[n:]
 
-	out:
-		for _, b1 := range first {
-			for _, b2 := range second {
-				if b1 == b2 {
-					items = append(items, item(b1))
-					break out
-				}
+	b, err := io.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+	var groups [][3]map[item]struct{}
+	fields := bytes.Fields(b)
+	for i := 0; i < len(fields); i += 3 {
+		groups = append(groups,
+			[3]map[item]struct{}{itemize(fields[i]), itemize(fields[i+1]), itemize(fields[i+2])})
+	}
+
+	var items []item
+	for _, group := range groups {
+		elf := 0
+		for item := range group[elf] {
+			_, ok1 := group[elf+1][item]
+			_, ok2 := group[elf+2][item]
+			if ok1 && ok2 {
+				items = append(items, item)
 			}
 		}
 	}
@@ -61,4 +68,12 @@ func main() {
 	}
 	fmt.Printf("items: %v\n", items)
 	fmt.Printf("sum: %v\n", sum)
+}
+
+func itemize(data []byte) map[item]struct{} {
+	items := make(map[item]struct{}, len(data))
+	for _, b := range data {
+		items[item(b)] = struct{}{}
+	}
+	return items
 }
