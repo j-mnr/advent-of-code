@@ -31,7 +31,6 @@ func main() {
 	for scr.Scan() {
 		first, second, ok := bytes.Cut(scr.Bytes(), []byte(","))
 		if !ok {
-			fmt.Println("blank line?", scr.Text())
 			continue
 		}
 		b1, ok1 := convert(first)
@@ -39,11 +38,14 @@ func main() {
 		if !ok1 || !ok2 {
 			fmt.Println("conversion failed")
 		}
-		fmt.Println(b1, b2)
-		if (b1[0] >= b2[0] && b1[1] <= b2[1]) || (b2[0] >= b1[0] && b2[1] <= b1[1]) {
-			fmt.Println("contained in together", b1, b2)
-			contained++
+		if b1[0] > b2[0] {
+			b1, b2 = b2, b1
 		}
+		if b1[1] < b2[0] {
+			continue
+		}
+		fmt.Println("contained in together", b1, b2)
+		contained++
 	}
 
 	fmt.Printf("contained: %d\n", contained)
