@@ -2,46 +2,39 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"strings"
-)
-
-var (
-	f   = strings.NewReader("mjqjpqmgbljsphdztnvjfqwrcgsmlb") // 7
-	fiv = strings.NewReader("bvwbjplbgvbhsrlpgdmjqwftvncz")
-	six = strings.NewReader("nppdvjthqldpwncqszvftbrmjlhg")
-	ten = strings.NewReader("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")
-	elv = strings.NewReader("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")
 )
 
 func main() {
-	// marker(f)
-	// marker(fiv)
-	// marker(six)
-	// marker(ten)
-	// marker(elv)
-	stream, err := os.ReadFile("input")
+	f, err := os.Open("input")
 	if err != nil {
 		log.Fatal(err)
 	}
-	marker(stream)
-}
+	defer f.Close()
 
-func marker(stream []byte) {
-	seen := [4]byte{stream[0], stream[1], stream[2], stream[3]}
-	for i, b := range stream[4:] {
+	stream, err := io.ReadAll(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	seen := [14]byte{}
+	for i, b := range stream[:14] {
+		seen[i] = b
+	}
+	for i, b := range stream[14:] {
 		if dupl(seen) {
 			seen = rotate(seen, b)
 			continue
 		}
-		// fmt.Println(seen)
-		fmt.Println("stream start:", i+4)
+		fmt.Println(seen)
+		fmt.Println("stream start:", i+14)
 		break
 	}
 }
 
-func dupl(seen [4]byte) bool {
+func dupl(seen [14]byte) bool {
 	for i, a := range seen {
 		for _, b := range seen[i+1:] {
 			if a == b {
@@ -52,7 +45,10 @@ func dupl(seen [4]byte) bool {
 	return false
 }
 
-func rotate(a [4]byte, b byte) [4]byte {
-	a[0], a[1], a[2], a[3] = a[1], a[2], a[3], b
+func rotate(a [14]byte, b byte) [14]byte {
+	for i := 0; i < len(a)-1; i++ {
+		a[i] = a[i+1]
+	}
+	a[13] = b
 	return a
 }
