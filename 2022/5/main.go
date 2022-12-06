@@ -14,45 +14,6 @@ var (
 	errNilGraph      = errors.New("Cannot unmarshal text into a nil graph")
 )
 
-var f = strings.NewReader(`
-    [D]    
-[N] [C]    
-[Z] [M] [P]
- 1   2   3 
-
-move 1 from 2 to 1
-move 3 from 1 to 3
-move 2 from 2 to 1
-move 1 from 1 to 2`[1:])
-
-func main() {
-	data, err := os.ReadFile("input")
-	if err != nil {
-		panic(err)
-	}
-
-	// data, err := io.ReadAll(f)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	graphAndSequences := bytes.Split(data, []byte("\n\n"))
-	var moves []*crane
-	for _, seq := range bytes.Split(graphAndSequences[1], []byte("\n")) {
-		c := &crane{}
-		if err := c.UnmarshalText(seq); err != nil {
-			continue
-		}
-		moves = append(moves, c)
-	}
-	// fmt.Println(moves)
-
-	g := &graph{}
-	err = g.UnmarshalText(graphAndSequences[0])
-	// fmt.Println(g, err)
-	shuffle(g, moves)
-	fmt.Println(g)
-}
-
 type crane struct{ move, from, to uint8 }
 
 func (c *crane) UnmarshalText(text []byte) error {
@@ -93,14 +54,26 @@ func (c crane) String() string {
 
 type stack []byte
 
-func (s *stack) pop() byte {
+func (s *stack) pop(amount uint8) []byte {
 	if s == nil {
-		return 0
+		return nil
 	}
-	// fmt.Println(*s)
-	b := (*s)[len(*s)-1]
-	(*s) = (*s)[:len(*s)-1]
+	b := make(stack, amount)
+	for i, j := len(*s)-1, 1; i >= len(*s)-int(amount); i, j = i-1, j+1 {
+		b[len(b)-j] = (*s)[i]
+	}
+	(*s) = (*s)[:len(*s)-int(amount)]
 	return b
+}
+
+func (s stack) String() string {
+	var sb strings.Builder
+	sb.WriteByte('[')
+	for _, b := range s {
+		sb.Write([]byte{' ', b})
+	}
+	sb.Write([]byte(" ]"))
+	return sb.String()
 }
 
 type graph map[uint8]stack
@@ -122,7 +95,6 @@ func (g *graph) UnmarshalText(text []byte) error {
 		column++
 	}
 	rows = rows[:len(rows)-1]
-	fmt.Println(indexes)
 	*g = make(graph, len(indexes))
 
 	// gather crates by name
@@ -134,10 +106,6 @@ func (g *graph) UnmarshalText(text []byte) error {
 			(*g)[indexes[i]] = append((*g)[indexes[i]], b)
 		}
 	}
-	for col, stk := range *g {
-		fmt.Println(col, stk)
-	}
-	// fmt.Printf("%s %s %s\n", (*g)[1], (*g)[2], (*g)[3])
 	return nil
 }
 
@@ -145,7 +113,6 @@ func (g graph) String() string {
 	var sb strings.Builder
 	ordered := make([]stack, len(g))
 	for column, stk := range g {
-		fmt.Println(column, stk)
 		ordered[column-1] = stk
 	}
 
@@ -160,14 +127,33 @@ func (g graph) String() string {
 	return sb.String()
 }
 
+func main() {
+	data, err := os.ReadFile("input")
+	if err != nil {
+		panic(err)
+	}
+
+	graphAndSequences := bytes.Split(data, []byte("\n\n"))
+	var moves []*crane
+	for _, seq := range bytes.Split(graphAndSequences[1], []byte("\n")) {
+		c := &crane{}
+		if err := c.UnmarshalText(seq); err != nil {
+			continue
+		}
+		moves = append(moves, c)
+	}
+
+	g := &graph{}
+	err = g.UnmarshalText(graphAndSequences[0])
+	shuffle(g, moves)
+
+	fmt.Println(g)
+}
+
 func shuffle(g *graph, moves []*crane) {
 	for _, m := range moves {
-		fmt.Println(m)
 		from, to := (*g)[m.from], (*g)[m.to]
-		for i := uint8(0); i < m.move; i++ {
-			to = append(to, from.pop())
-		}
+		to = append(to, from.pop(m.move)...)
 		(*g)[m.from], (*g)[m.to] = from, to
-		// fmt.Println(g)
 	}
 }
