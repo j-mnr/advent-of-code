@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -170,7 +171,18 @@ func main() {
 		}
 		total += d.size
 	}
-	fmt.Printf("total: %v\n", total)
+
+	// Part 2
+	usedSpace := availableSpace - root.size
+	minSpace := uint64(math.MaxUint64)
+	minDirSize := uint64(0)
+	for _, d := range root.Directories() {
+		if addedSpace := d.size + usedSpace; addedSpace < minSpace && addedSpace >= needSpace {
+			minSpace = addedSpace
+			minDirSize = d.size
+		}
+	}
+	fmt.Printf("minDirSize: %v\n", minDirSize)
 }
 
 func parse(line []byte) *resource {
