@@ -59,51 +59,52 @@ func main() {
 		}
 		idx++
 	}
-	visible := 0
+	maxScore := 0
 	for i, heights := range outline {
 		for j := range heights {
-			if i == 0 || j == 0 || i == len(outline)-1 || j == len(heights)-1 { // edges
-				visible++
-				continue
-			}
-
+			currScore := 1
 			for _, dir := range []direction{left, right, up, down} {
-				if isVisibleFrom(dir, i, j, outline) {
-					visible++
-					break
-				}
+				currScore *= visibilityScore(dir, i, j, outline)
+			}
+			if currScore > maxScore {
+				maxScore = currScore
 			}
 		}
 	}
-	fmt.Printf("visible trees: %v\n", visible)
+	fmt.Printf("Highest scenic score: %v\n", maxScore)
 }
 
-func isVisibleFrom(d direction, y, x int, outline [][]height) bool {
+func visibilityScore(d direction, y, x int, outline [][]height) int {
+	score := 0
 	switch d {
 	case up:
 		for i := y - 1; i >= 0; i-- {
+			score++
 			if outline[i][x] >= outline[y][x] {
-				return false
+				break
 			}
 		}
 	case right:
 		for i := x + 1; i < len(outline[y]); i++ {
+			score++
 			if outline[y][i] >= outline[y][x] {
-				return false
+				break
 			}
 		}
 	case down:
 		for i := y + 1; i < len(outline); i++ {
+			score++
 			if outline[i][x] >= outline[y][x] {
-				return false
+				break
 			}
 		}
 	case left:
 		for i := x - 1; i >= 0; i-- {
+			score++
 			if outline[y][i] >= outline[y][x] {
-				return false
+				break
 			}
 		}
 	}
-	return true
+	return score
 }
