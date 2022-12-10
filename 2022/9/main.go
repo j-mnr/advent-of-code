@@ -9,124 +9,79 @@ import (
 	"strings"
 )
 
-// R 4
-// U 4
-// L 3
-// D 1
-// R 4
-// D 1
-// L 5
-// R 2
-var f = strings.NewReader(`
-R 4
-U 4
-L 3
-D 1
-R 4
-D 1
-L 5
-R 2 `[1:])
-
-type direction uint8
-
-const (
-	unknown = iota
-	up
-	down
-	left
-	right
-)
-
-type coordinate [2]int
+type coord [2]int
 
 func main() {
 	f, err := os.Open("input")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer f.Close()
 
+	knots := make([]coord, 10)
+	tailVisit := make(map[coord]struct{})
+	tailVisit[knots[0]] = struct{}{}
 	scr := bufio.NewScanner(f)
-	allCoords := map[coordinate]struct{}{}
-	head, tail := coordinate{10000, 10000}, coordinate{10000, 10000}
 	for scr.Scan() {
-		f := strings.Fields(scr.Text())
-		dir := Direction(f[0])
-		steps, err := strconv.Atoi(f[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		for i := 0; i < steps; i++ {
-			switch dir {
-			case up:
-				head[0]++
-			case down:
-				head[0]--
-			case left:
-				head[1]--
-			case right:
-				head[1]++
-			}
-			catch(&head, &tail)
-			allCoords[tail] = struct{}{}
+		op, amount := parseLine(scr.Text())
+		dx, dy := direction(op)
+		for i := 0; i < amount; i++ {
+			move(knots, dx, dy)
+			tailVisit[knots[len(knots)-1]] = struct{}{}
 		}
 	}
-	fmt.Println("All unique positions visited:", len(allCoords))
+	fmt.Printf("knots: %v\n", knots)
+	fmt.Println(len(tailVisit))
 }
 
-func Direction(s string) direction {
-	switch s {
+func direction(op string) (x, y int) {
+	switch op {
 	case "R":
-		return right
-	case "D":
-		return down
+		return 1, 0
 	case "U":
-		return up
+		return 0, 1
 	case "L":
-		return left
-	default:
-		panic(s + " is not a direction")
+		return -1, 0
+	case "D":
+		return 0, -1
+	}
+	panic("No other direction exists!")
+}
+
+func parseLine(s string) (string, int) {
+	flds := strings.Fields(s)
+	amount, err := strconv.Atoi(flds[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+	return flds[0], amount
+}
+
+func move(knots []coord, dx, dy int) {
+	knots[0][0] += dx
+	knots[0][1] += dy
+
+	for i := 1; i < 10; i++ {
+		tx, ty := knots[i][0], knots[i][1]
+
+		if !touching(knots[i-1], knots[i]) {
+			hx, hy := knots[i-1][0], knots[i-1][1]
+			signx, signy := 0, 0
+			if hx != tx {
+				signx = (hx - tx) / abs(hx-tx)
+			}
+			if hy != ty {
+				signy = (hy - ty) / abs(hy-ty)
+			}
+
+			tx += signx
+			ty += signy
+		}
+		knots[i] = coord{tx, ty}
 	}
 }
 
-func catch(head, tail *coordinate) {
-	dif0, dif1 := abs(head[0])-abs(tail[0]), abs(head[1])-abs(tail[1])
-	if (dif0 == 0 && dif1 == 0) || (dif0 == 1 && dif1 == 1) ||
-		(dif0 == 1 && dif1 == 0) || (dif0 == 0 && dif1 == 1) {
-		return
-	}
-	if (abs(dif0) == 2 && abs(dif1) == 1) || (abs(dif0) == 1 && abs(dif1) == 2) { // diagnoal
-		switch {
-		case dif0 < 0 && dif1 < 0:
-			tail[0]--
-			tail[1]--
-		case dif0 >= 0 && dif1 < 0:
-			tail[0]++
-			tail[1]--
-		case dif0 < 0 && dif1 >= 0:
-			tail[0]--
-			tail[1]++
-		case dif0 >= 0 && dif1 >= 0:
-			tail[0]++
-			tail[1]++
-		}
-		return
-	}
-
-	switch {
-	case abs(dif0) == 2:
-		if dif0 < 0 {
-			tail[0]--
-			return
-		}
-		tail[0]++
-	case abs(dif1) == 2:
-		if dif1 < 0 {
-			tail[1]--
-			return
-		}
-		tail[1]++
-	}
+func touching(c1, c2 coord) bool {
+	return abs(c1[0]-c2[0]) <= 1 && abs(c1[1]-c2[1]) <= 1
 }
 
 func abs(a int) int {
