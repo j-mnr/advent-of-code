@@ -39,10 +39,10 @@ Monkey 3:
 		If false: throw to monkey 1`[1:])
 
 type monkey struct {
-	items     []uint32
-	inspect   func(uint32) uint32
-	throw     func(uint32) int
-	inspected uint16
+	items     []uint64
+	inspect   func(uint64) uint64
+	throw     func(uint64) int
+	inspected uint64
 }
 
 func main() {
@@ -50,12 +50,13 @@ func main() {
 	data, err = os.ReadFile("input")
 	check(err)
 
-	monkeys := populate(data)
+	lcm := 1
+	monkeys := populate(data, &lcm)
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 10000; i++ {
 		for j, m := range monkeys {
 			for _, it := range m.items {
-				newItem := m.inspect(it)
+				newItem := m.inspect(it) % uint64(lcm)
 				monkeys[j].inspected++
 				to := m.throw(newItem)
 				monkeys[to].items = append(monkeys[to].items, newItem)
@@ -64,21 +65,22 @@ func main() {
 		}
 	}
 
-	first, second := 0, 0
+	first, second := uint64(0), uint64(0)
 	for i, m := range monkeys {
-		ins := int(m.inspected)
+		ins := m.inspected
 		switch {
 		case ins > first:
-			first = ins
+			first, second = ins, first
 		case ins > second:
 			second = ins
 		}
 		fmt.Println("monkey", i, "inspected", m.inspected, "items")
 	}
+
 	fmt.Println("Level of monkey business:", first*second)
 }
 
-func populate(data []byte) []monkey {
+func populate(data []byte, lcm *int) []monkey {
 	var monkeys []monkey
 	for _, mData := range strings.Split(string(data), "\n\n") {
 		m := monkey{}
@@ -89,22 +91,22 @@ func populate(data []byte) []monkey {
 		for _, item := range strings.Split(items, ", ") {
 			n, err := strconv.Atoi(item)
 			check(err)
-			m.items = append(m.items, uint32(n))
+			m.items = append(m.items, uint64(n))
 		}
 
 		// create inspection function
 		_, fn, _ := strings.Cut(details[2], "new = old ")
 		f := strings.Fields(fn)
-		m.inspect = func(u uint32) uint32 {
+		m.inspect = func(u uint64) uint64 {
 			n, err := strconv.Atoi(f[1])
 			if err != nil {
 				n = int(u)
 			}
 			switch f[0] {
 			case "+":
-				return (u + uint32(n)) / 3
+				return (u + uint64(n))
 			case "*":
-				return (u * uint32(n)) / 3
+				return (u * uint64(n))
 			default:
 				panic("Not implemented!")
 			}
@@ -113,6 +115,8 @@ func populate(data []byte) []monkey {
 		// create test function
 		_, num, _ := strings.Cut(details[3], ": divisible by ")
 		n, err := strconv.Atoi(num)
+		// Part 2
+		*lcm *= n
 		check(err)
 		_, num, _ = strings.Cut(details[4], ": throw to monkey ")
 		m1, err := strconv.Atoi(num)
@@ -120,8 +124,8 @@ func populate(data []byte) []monkey {
 		_, num, _ = strings.Cut(details[5], ": throw to monkey ")
 		m2, err := strconv.Atoi(num)
 		check(err)
-		m.throw = func(u uint32) int {
-			if u%uint32(n) == 0 {
+		m.throw = func(u uint64) int {
+			if u%uint64(n) == 0 {
 				return m1
 			}
 			return m2
