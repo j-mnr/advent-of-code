@@ -21,7 +21,6 @@ func main() {
 	}
 
 	filled := make(map[coord]struct{})
-
 	scr := bufio.NewScanner(f)
 	for scr.Scan() {
 		coords := parseLine(scr.Text())
@@ -44,14 +43,23 @@ func main() {
 	}
 
 	grains := 0
-	for hasStopped(filled, findFloor(filled)) {
+	floor := findFloor(filled)
+	for {
+		x, y := dropGrain(filled, floor)
 		grains++
+		filled[coord{x, y}] = struct{}{}
+		if x == 500 && y == 0 {
+			break
+		}
 	}
-	fmt.Printf("grains of sand: %v\n", grains) // 198 too low
+	fmt.Printf("grains of sand: %v\n", grains)
 }
 
-func hasStopped(filled map[coord]struct{}, floor int) bool {
+func dropGrain(filled map[coord]struct{}, floor int) (int, int) {
 	x, y := 500, 0
+	if _, in := filled[coord{x, y}]; in {
+		return x, y
+	}
 	for y <= floor {
 		if _, in := filled[coord{x, y + 1}]; !in {
 			y++
@@ -67,10 +75,9 @@ func hasStopped(filled map[coord]struct{}, floor int) bool {
 			y++
 			continue
 		}
-		filled[coord{x, y}] = struct{}{}
-		return true
+		break
 	}
-	return false
+	return x, y
 }
 
 func findFloor(filled map[coord]struct{}) int {
