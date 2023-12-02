@@ -1,90 +1,40 @@
-package main
+package one
 
 import (
 	"bytes"
 	_ "embed"
-	"flag"
 	"fmt"
 	"log/slog"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
 
 var (
-	// 12
-	// 38
-	// 15
-	// 77
-	// == 142
-	example1 = `
-1abc2
-pqr3stu8vwx
-a1b2c3d4e5f
-treb7uchet`[1:]
-	// 29
-	// 83
-	// 13
-	// 24
-	// 42
-	// 14
-	// 76
-	// == 281
-	example2 = `
-two1nine
-eightwothree
-abcone2threexyz
-xtwone3four
-4nineeightseven2
-zoneight234
-7pqrstsixteen`[1:]
+	// example1 == 142
+	example1 = "1abc2\n" + // 12
+		"pqr3stu8vwx\n" + // 38
+		"a1b2c3d4e5f\n" + // 15
+		"treb7uchet" // 77
+	// example2 == 281
+	example2 = "two1nine\n" + // 29
+		"eightwothree\n" + // 83
+		"abcone2threexyz\n" + // 13
+		"xtwone3four\n" + // 24
+		"4nineeightseven2\n" + // 42
+		"zoneight234\n" + // 14
+		"7pqrstsixteen\n" // 76
 
 	//go:embed input.txt
 	input []byte
-
-	info *slog.Logger
-
-	programLevel = new(slog.LevelVar)
 )
 
-func init() {
-	info = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     programLevel,
-		AddSource: true,
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			switch a.Key {
-			case "level":
-				return slog.Attr{}
-			case "time":
-				a.Value = slog.StringValue(a.Value.Time().Format("15:04:05.000"))
-				return a
-			case "source":
-				s := a.Value.String()
-				a.Value = slog.StringValue(strings.Replace(s[strings.LastIndex(s, "/")+1:strings.LastIndex(s, "}")-1], " ", ":", 1))
-				return a
-			default:
-				return a
-			}
-		},
-	}))
-}
-
-func main() {
-	infoF := flag.Bool("info", false, "Set if you want information on running processes.")
-	exampleF := flag.Int("example", 0, "Run the example given from AoC part 1 or 2. Defaults to input")
-	partF := flag.Int("part", 1, "Run part 1 or 2. Defaults to 1")
-	flag.Parse()
-
-	if !*infoF {
-		programLevel.Set(slog.LevelError)
-	}
-
-	switch *partF {
+func Run(part uint8, example uint8) {
+	switch part {
 	case 1:
-		part1(prepareInput(*exampleF))
+		part1(prepareInput(example))
 	case 2:
-		part2(prepareInput(*exampleF))
+		part2(prepareInput(example))
 	}
 }
 
@@ -96,7 +46,7 @@ func part1(buf string) {
 	for _, line := range strings.Split(buf, "\n") {
 		first := strings.IndexAny(line, "123456789")
 		last := strings.LastIndexAny(line, "123456789")
-		info.Info("digits found", slog.String("first", string(line[first:first+1])),
+		slog.Info("digits found", slog.String("first", string(line[first:first+1])),
 			slog.String("last", string(line[last:last+1])))
 		sum += must2(strconv.Atoi(string(line[first:first+1]) + string(line[last:last+1])))
 	}
@@ -141,7 +91,7 @@ func part2(buf string) {
 		case nine:
 			return "9"
 		default:
-			info.Info("bad digit", slog.String("string", d))
+			slog.Info("bad digit", slog.String("string", string(d)))
 			panic("bad digit")
 		}
 	}
@@ -173,7 +123,7 @@ func part2(buf string) {
 		ifirstInt := strings.IndexAny(line, "123456789")
 		ilastInt := strings.LastIndexAny(line, "123456789")
 		if ifirstInt > 0 && ilastInt > 0 {
-			info.Info("ints found", slog.String("ifirstInt", string(line[ifirstInt:ifirstInt+1])),
+			slog.Info("ints found", slog.String("ifirstInt", string(line[ifirstInt:ifirstInt+1])),
 				slog.String("ilastInt", string(line[ilastInt:ilastInt+1])))
 		}
 
@@ -184,7 +134,7 @@ func part2(buf string) {
 		if ilastInt > maxIdx {
 			maxIdx, ndigitMax = ilastInt, -1
 		}
-		info.Info("min/max indexes", slog.Int("minIdx", minIdx),
+		slog.Info("min/max indexes", slog.Int("minIdx", minIdx),
 			slog.Int("maxIdx", maxIdx),
 			slog.String("encompasses", accountForDigits(line, minIdx, maxIdx, ndigitMax)),
 		)
@@ -192,10 +142,10 @@ func part2(buf string) {
 		// Do what problem asks.
 		first, last := line[minIdx:minIdx+1], line[maxIdx:maxIdx+1]
 		if ndigitMin != -1 {
-			first = toNumber(digit(line[minIdx:minIdx+ndigitMin]))
+			first = toNumber(digit(line[minIdx : minIdx+ndigitMin]))
 		}
 		if ndigitMax != -1 {
-			last = toNumber(digit(line[maxIdx:maxIdx+ndigitMax]))
+			last = toNumber(digit(line[maxIdx : maxIdx+ndigitMax]))
 		}
 		sum += must2(strconv.Atoi(first + last))
 	}
@@ -203,11 +153,11 @@ func part2(buf string) {
 	fmt.Println("Sum of lines is", sum)
 }
 
-func prepareInput(exampleCase int) string {
+func prepareInput(exampleCase uint8) string {
 	var buf bytes.Buffer
-	defer func() { info.Info("prepareInput", "input", buf.String()) }()
+	defer func() { slog.Info("prepareInput", "input", buf.String()) }()
 
-	info.Info("exampleCase chosen", "example", exampleCase)
+	slog.Info("exampleCase chosen", "example", exampleCase)
 	switch exampleCase {
 	case 0:
 		buf.Write(input)
