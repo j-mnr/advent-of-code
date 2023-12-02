@@ -2,6 +2,7 @@ package main
 
 import (
 	"aoc/1"
+	"aoc/2"
 	"flag"
 	"log/slog"
 	"os"
@@ -40,8 +41,9 @@ func init() {
 			case "level":
 				return slog.Attr{}
 			case "time":
-				a.Value = slog.StringValue(a.Value.Time().Format("15:04:05.000"))
-				return a
+				// a.Value = slog.StringValue(a.Value.Time().Format("15:04:05.000"))
+				// return a
+				return slog.Attr{}
 			case "source":
 				s := a.Value.String()
 				a.Value = slog.StringValue(
@@ -69,5 +71,7 @@ func main() {
 	switch dayF {
 	case 1:
 		one.Run(uint8(partF), *exampleF)
+	case 2:
+		two.Run(uint8(partF), *exampleF)
 	}
 }

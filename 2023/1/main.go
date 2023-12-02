@@ -17,7 +17,7 @@ var (
 		"1abc2\n" + // 12
 			"pqr3stu8vwx\n" + // 38
 			"a1b2c3d4e5f\n" + // 15
-			"treb7uchet", // 77
+			"treb7uchet\n", // 77
 	)
 	// example2 == 281
 	example2 = strings.NewReader(
@@ -27,7 +27,7 @@ var (
 			"xtwone3four\n" + // 24
 			"4nineeightseven2\n" + // 42
 			"zoneight234\n" + // 14
-			"7pqrstsixteen", // 76
+			"7pqrstsixteen\n", // 76
 	)
 
 	//go:embed input.txt
