@@ -3,10 +3,10 @@ package main
 import (
 	"aoc/1"
 	"flag"
-	"os"
-	"strings"
-	"strconv"
 	"log/slog"
+	"os"
+	"strconv"
+	"strings"
 )
 
 var programLevel = new(slog.LevelVar)
@@ -56,11 +56,11 @@ func init() {
 }
 
 func main() {
-	var dayF, partF, exampleF uint8
-	infoF := flag.Bool("info", false, "Set if you want information on running processes.")
+	var dayF, partF uint8
+	infoF := flag.Bool("info", false, "Gives information on the running process")
 	flag.Var(newUint8Value(1, &dayF), "day", "The day to run")
 	flag.Var(newUint8Value(1, &partF), "part", "The part to run")
-	flag.Var(newUint8Value(0, &exampleF), "example", "Run the example given from AoC part 1 or 2. Defaults to input")
+	exampleF := flag.Bool("example", false, "Run the example given from AoC")
 	flag.Parse()
 
 	if !*infoF {
@@ -68,6 +68,6 @@ func main() {
 	}
 	switch dayF {
 	case 1:
-		one.Run(uint8(partF), uint8(exampleF))
+		one.Run(uint8(partF), *exampleF)
 	}
 }

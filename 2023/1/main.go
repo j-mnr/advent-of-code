@@ -1,6 +1,7 @@
 package one
 
 import (
+	"aoc/util"
 	"bytes"
 	_ "embed"
 	"fmt"
@@ -12,29 +13,41 @@ import (
 
 var (
 	// example1 == 142
-	example1 = "1abc2\n" + // 12
-		"pqr3stu8vwx\n" + // 38
-		"a1b2c3d4e5f\n" + // 15
-		"treb7uchet" // 77
+	example1 = strings.NewReader(
+		"1abc2\n" + // 12
+			"pqr3stu8vwx\n" + // 38
+			"a1b2c3d4e5f\n" + // 15
+			"treb7uchet", // 77
+	)
 	// example2 == 281
-	example2 = "two1nine\n" + // 29
-		"eightwothree\n" + // 83
-		"abcone2threexyz\n" + // 13
-		"xtwone3four\n" + // 24
-		"4nineeightseven2\n" + // 42
-		"zoneight234\n" + // 14
-		"7pqrstsixteen\n" // 76
+	example2 = strings.NewReader(
+		"two1nine\n" + // 29
+			"eightwothree\n" + // 83
+			"abcone2threexyz\n" + // 13
+			"xtwone3four\n" + // 24
+			"4nineeightseven2\n" + // 42
+			"zoneight234\n" + // 14
+			"7pqrstsixteen", // 76
+	)
 
 	//go:embed input.txt
 	input []byte
 )
 
-func Run(part uint8, example uint8) {
+func Run(part uint8, example bool) {
 	switch part {
 	case 1:
-		part1(prepareInput(example))
+		if example {
+			part1(util.PrepareInput(example1))
+			return
+		}
+		part1(util.PrepareInput(bytes.NewReader(input)))
 	case 2:
-		part2(prepareInput(example))
+		if example {
+			part2(util.PrepareInput(example2))
+			return
+		}
+		part2(util.PrepareInput(bytes.NewReader(input)))
 	}
 }
 
@@ -48,7 +61,7 @@ func part1(buf string) {
 		last := strings.LastIndexAny(line, "123456789")
 		slog.Info("digits found", slog.String("first", string(line[first:first+1])),
 			slog.String("last", string(line[last:last+1])))
-		sum += must2(strconv.Atoi(string(line[first:first+1]) + string(line[last:last+1])))
+		sum += util.Must2(strconv.Atoi(string(line[first:first+1]) + string(line[last:last+1])))
 	}
 	fmt.Println("Sum of lines is", sum)
 }
@@ -147,34 +160,8 @@ func part2(buf string) {
 		if ndigitMax != -1 {
 			last = toNumber(digit(line[maxIdx : maxIdx+ndigitMax]))
 		}
-		sum += must2(strconv.Atoi(first + last))
+		sum += util.Must2(strconv.Atoi(first + last))
 	}
 
 	fmt.Println("Sum of lines is", sum)
-}
-
-func prepareInput(exampleCase uint8) string {
-	var buf bytes.Buffer
-	defer func() { slog.Info("prepareInput", "input", buf.String()) }()
-
-	slog.Info("exampleCase chosen", "example", exampleCase)
-	switch exampleCase {
-	case 0:
-		buf.Write(input)
-	case 1:
-		buf.WriteString(example1)
-	case 2:
-		buf.WriteString(example2)
-	default:
-		panic("Only 3 cases 0=input, 1=part1, 2=part2")
-	}
-	// Remove the trailing newline from the file.
-	return buf.String()[:len(buf.String())-1]
-}
-
-func must2[T any](t T, err error) T {
-	if err != nil {
-		panic(err)
-	}
-	return t
 }
