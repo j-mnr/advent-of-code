@@ -9,8 +9,11 @@ import (
 	"strings"
 )
 
+const red, green, blue = " red", " green", " blue"
+
 var (
-	// 12 red, 13 green, 14 blue == 1+2+5 == 8
+	// part1: 12 red, 13 green, 14 blue == 1+2+5 == 8
+	// part2: (Game 1: 4 red * 2 green * 6 blue)48 + 2 + 1560 + 630 + 36 == 2286
 	example1 = strings.NewReader(`
 Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
@@ -18,8 +21,6 @@ Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 `[1:])
-
-	example2 = strings.NewReader(``)
 
 	//go:embed input.txt
 	input []byte
@@ -35,7 +36,7 @@ func Run(part uint8, example bool) {
 		part1(util.PrepareInput(bytes.NewReader(input)))
 	case 2:
 		if example {
-			part2(util.PrepareInput(example2))
+			part2(util.PrepareInput(example1))
 			return
 		}
 		part2(util.PrepareInput(bytes.NewReader(input)))
@@ -57,10 +58,7 @@ func part1(input string) {
 }
 
 func findImpossibleGameIn(line string, gameID, sum int) (newSum int) {
-	const (
-		red, green, blue       = " red", " green", " blue"
-		rlimit, glimit, blimit = 12, 13, 14
-	)
+	const rlimit, glimit, blimit = 12, 13, 14
 	hasSetSum := func(limit, rgblimit int, color, rgbcolor string) bool {
 		if strings.Contains(color, rgbcolor) && limit > rgblimit {
 			slog.Info("Limit too great for"+rgbcolor, "limit", limit, "color", color)
@@ -94,6 +92,52 @@ func findImpossibleGameIn(line string, gameID, sum int) (newSum int) {
 	return sum
 }
 
+// part2 For each game, find the minimum set of cubes that must have been
+// present. What is the sum of the power of these sets?
+//
+// The power of a set of cubes is equal to the numbers of red, green, and blue
+// cubes multiplied together.
 func part2(input string) {
-	panic("Unimplemented")
+	sum := 0
+	for id, line := range strings.Split(input, "\n") {
+		id := id + 1
+		slog.Info("Current Game", "id", id, "line", line, "sum", sum)
+
+		minSet := struct{ r, g, b uint }{}
+		for i, set := range strings.Split(line[strings.Index(line, ": ")+2:], "; ") {
+			slog.Info("Current Set", "set", set, "set #", i+1)
+			findLowestSetPossible(set, &minSet)
+			slog.Info("After findLowestSetPossible", "minSet", minSet, "sum", sum)
+		}
+
+		sum += int(minSet.r * minSet.g * minSet.b)
+	}
+	slog.Info("Reached end", "sum", sum)
+}
+
+func findLowestSetPossible(set string, minSet *struct{ r, g, b uint }) {
+	for j, rgb := range strings.SplitN(set, ", ", 3) {
+		slog.Info("Current Color", "rgb #", j+1, "color", rgb)
+		cand := uint(util.Must2(strconv.Atoi(rgb[:strings.Index(rgb, " ")])))
+		switch {
+		case strings.Contains(rgb, red):
+			if cand > minSet.r {
+				slog.Info("Setting lower value", red, minSet.r, "color", rgb,
+					"candidate", cand)
+				minSet.r = cand
+			}
+		case strings.Contains(rgb, green):
+			if cand > minSet.g {
+				slog.Info("Setting lower value", green, minSet.g, "color", rgb,
+					"candidate", cand)
+				minSet.g = cand
+			}
+		case strings.Contains(rgb, blue):
+			if cand > minSet.b {
+				slog.Info("Setting lower value", blue, minSet.b, "color", rgb,
+					"candidate", cand)
+				minSet.b = cand
+			}
+		}
+	}
 }
