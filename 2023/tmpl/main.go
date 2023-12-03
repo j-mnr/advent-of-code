@@ -6,14 +6,19 @@ import (
 )
 
 var (
-	example1 = strings.NewReader(``)
-	example2 = strings.NewReader(``)
+	// example1
+	example1 = strings.NewReader(`
+`[1:])
+
+	// example2
+	example2 = strings.NewReader(`
+`[1:])
 
 	//go:embed input.txt
 	input string
 )
 
-func Run() {
+func Run(part uint8, example bool) {
 	data := util.PrepareInput(strings.NewReader(input))
 	switch part {
 	case 1:
