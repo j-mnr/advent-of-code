@@ -3,6 +3,7 @@ package main
 import (
 	"aoc/1"
 	"aoc/2"
+	"aoc/3"
 	"flag"
 	"log/slog"
 	"os"
@@ -73,5 +74,7 @@ func main() {
 		one.Run(uint8(partF), *exampleF)
 	case 2:
 		two.Run(uint8(partF), *exampleF)
+	case 3:
+		three.Run(uint8(partF), *exampleF)
 	}
 }

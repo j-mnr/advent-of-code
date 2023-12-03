@@ -2,7 +2,6 @@ package two
 
 import (
 	"aoc/util"
-	"bytes"
 	_ "embed"
 	"log/slog"
 	"strconv"
@@ -23,23 +22,22 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 `[1:])
 
 	//go:embed input.txt
-	input []byte
+	input string
 )
 
 func Run(part uint8, example bool) {
+	data := util.PrepareInput(strings.NewReader(input))
 	switch part {
 	case 1:
 		if example {
-			part1(util.PrepareInput(example1))
-			return
+			data = util.PrepareInput(example1)
 		}
-		part1(util.PrepareInput(bytes.NewReader(input)))
+		part1(data)
 	case 2:
 		if example {
-			part2(util.PrepareInput(example1))
-			return
+			data = util.PrepareInput(example1)
 		}
-		part2(util.PrepareInput(bytes.NewReader(input)))
+		part2(data)
 	}
 }
 
