@@ -1,16 +1,18 @@
 package TODO
 
 import (
+	"aoc/util"
 	_ "embed"
 	"strings"
+	"log/slog"
 )
 
 var (
-	// example1
+	// example1:
 	example1 = strings.NewReader(`
 `[1:])
 
-	// example2
+	// example2:
 	example2 = strings.NewReader(`
 `[1:])
 
