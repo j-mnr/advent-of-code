@@ -3,8 +3,8 @@ package TODO
 import (
 	"aoc/util"
 	_ "embed"
-	"strings"
 	"log/slog"
+	"strings"
 )
 
 var (

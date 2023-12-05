@@ -3,9 +3,9 @@ package four
 import (
 	"aoc/util"
 	_ "embed"
-	"strings"
 	"log/slog"
 	"math"
+	"strings"
 )
 
 var (
@@ -24,7 +24,27 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 `[1:])
 
 	// example2:
+	//
+	// - Card 1 has four matching numbers, so you win one copy each of the next
+	// four cards: cards 2, 3, 4, and 5.
+	// - Your original card 2 has two matching numbers, so you win one copy each
+	// of cards 3 and 4.
+	// - Your copy of card 2 also wins one copy each of cards 3 and 4.
+	// - Your four instances of card 3 (one original and three copies) have two
+	// matching numbers, so you win four copies each of cards 4 and 5.
+	// - Your eight instances of card 4 (one original and seven copies) have one
+	// matching number, so you win eight copies of card 5.
+	// - Your fourteen instances of card 5 (one original and thirteen copies) have
+	// no matching numbers and win no more cards.
+	// - Your one instance of card 6 (one original) has no matching numbers and
+	// wins no more cards.
 	example2 = strings.NewReader(`
+Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
+Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
+Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
+Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
+Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 `[1:])
 
 	//go:embed input.txt
@@ -78,7 +98,44 @@ func part1(input string) {
 	slog.Info("Total points", "result", sum)
 }
 
-// part2:
+// part2: There's no such thing as "points". Instead, scratchcards only cause
+// you to win more scratchcards equal to the number of winning numbers you have.
+// Process all of the original and copied scratchcards until no more
+// scratchcards are won. Including the original set of scratchcards, how many
+// total scratchcards do you end up with?
 func part2(input string) {
-	panic("Unimplemented")
+	cards := strings.Split(input, "\n")
+	type cardMatch struct{ matches, copies uint }
+	cm := make([]cardMatch, len(cards))
+	winners := ""
+	for i, line := range cards {
+		card, nums, ok := strings.Cut(line, ":")
+		winners, nums, ok = strings.Cut(nums, " |")
+		slog.Info(card, "winners", winners, "nums", nums, "found", ok)
+
+		matches := 0
+		for i := 0; i < len(nums); i += 3 {
+			slog.Info(card, "number", nums[i:i+3])
+			if strings.Contains(winners, nums[i:i+3]) {
+				slog.Info("Found matching number", "match", nums[i:i+3])
+				matches++
+			}
+		}
+		cm[i] = cardMatch{matches: uint(matches), copies: 1}
+	}
+
+	sum := uint(0)
+	for i, v := range cm {
+		sum += v.copies
+		slog.Info("Adding copies", "card", i+1, "copies", v.copies, "matches", v.matches)
+		if v.matches == 0 {
+			continue
+		}
+		for n := uint(0); n < v.copies; n++ {
+			for addCopy := uint(1); addCopy <= v.matches; addCopy++ {
+				cm[uint(i)+addCopy].copies++
+			}
+		}
+	}
+	slog.Info("Total copies", "result", sum)
 }
