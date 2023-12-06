@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
-	"strings"
 )
 
 var programLevel = new(slog.LevelVar)
@@ -48,11 +47,11 @@ func init() {
 				// return a
 				return slog.Attr{}
 			case "source":
-				s := a.Value.String()
-				a.Value = slog.StringValue(
-					strings.Replace(s[strings.LastIndex(s, "/")+1:strings.LastIndex(s, "}")-1], " ", ":", 1),
-				)
-				return a
+				// s := a.Value.String()
+				// a.Value = slog.StringValue(
+				// 	strings.Replace(s[strings.LastIndex(s, "/")+1:strings.LastIndex(s, "}")-1], " ", ":", 1),
+				// )
+				return slog.Attr{}
 			default:
 				return a
 			}
