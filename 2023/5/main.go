@@ -249,7 +249,7 @@ func part2(input string) {
 
 func convert(input []*almanacRange, t table) (output []*almanacRange) {
 	for hasRemaining := true; hasRemaining; {
-	 hasRemaining = false 
+		hasRemaining = false
 		for _, rng := range input {
 			if rng.processed { // Valid only when we append remaining
 				continue

@@ -4,8 +4,8 @@ import (
 	"aoc/util"
 	_ "embed"
 	"log/slog"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -23,8 +23,10 @@ Time:      7  15   30
 Distance:  9  40  200
 `[1:])
 
-	// example2:
+	// example2: Not even the real example, all numbers are concatenated.
 	example2 = strings.NewReader(`
+Time:      7  15   30
+Distance:  9  40  200
 `[1:])
 
 	//go:embed input.txt
@@ -90,7 +92,31 @@ func slicesMap[S1 ~[]E1, S2 ~[]E2, E1, E2 any](s1 S1, mapFn func(E1) E2) S2 {
 	return s2
 }
 
-// part2:
+// part2: Now, you have to figure out how many ways there are to win this single
+// race. In this example, the race lasts for 71530 milliseconds and the record
+// distance you need to beat is 940200 millimeters. You could hold the button
+// anywhere from 14 to 71516 milliseconds and beat the record, a total of 71503
+// ways!
+//
+// How many ways can you beat the record in this one much longer race?
 func part2(input string) {
-	panic("Unimplemented")
+	tnd := strings.Split(input, "\n")
+	time := util.Must2(strconv.Atoi(
+		strings.Join(strings.Fields(tnd[0])[1:], ""),
+	))
+	dist := util.Must2(strconv.Atoi(
+		strings.Join(strings.Fields(tnd[1])[1:], ""),
+	))
+	slog.Info("Starting values", "dumb", time, "distance", dist)
+
+	for speed := 1; speed < time; speed++ {
+		win := (time - speed) * speed
+		if win <= dist {
+			continue
+		}
+		slog.Info("Found winning range",
+			"time left", time-speed, "speed", speed,
+			"ways to beat", time-speed-speed+1)
+		break
+	}
 }
