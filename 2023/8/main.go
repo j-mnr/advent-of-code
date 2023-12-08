@@ -66,9 +66,8 @@ type node struct {
 func part1(input string) {
 	data := strings.Split(input, "\n")
 	instructions := data[0]
-	_ = instructions
 	nodes := make(map[string]node, len(data[2:]))
-	for i, line := range data[2:] {
+	for _, line := range data[2:] {
 		ff := strings.Fields(line)
 		nodes[ff[0]] = node{
 			name:  ff[0],
