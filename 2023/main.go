@@ -8,6 +8,7 @@ import (
 	"aoc/5"
 	"aoc/6"
 	"aoc/7"
+	"aoc/8"
 	"flag"
 	"log/slog"
 	"os"
@@ -87,5 +88,7 @@ func main() {
 		six.Run(uint8(partF), *exampleF)
 	case 7:
 		seven.Run(uint8(partF), *exampleF)
+	case 8:
+		eight.Run(uint8(partF), *exampleF)
 	}
 }
