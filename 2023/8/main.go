@@ -23,7 +23,21 @@ GGG = (GGG, GGG)
 ZZZ = (ZZZ, ZZZ)
 `[1:])
 
-	// example2:
+	// example2: Here, there are two starting nodes, 11A and 22A (because they
+	// both end with A). As you follow each left/right instruction, use that
+	// instruction to simultaneously navigate away from both nodes you're
+	// currently on. Repeat this process until all of the nodes you're currently
+	// on end with Z. (If only some of the nodes you're on end with Z, they act
+	// like any other node and you continue as normal.) In this example, you would
+	// proceed as follows:
+	//
+	// - Step 0: You are at 11A and 22A.
+	// - Step 1: You choose all of the left paths, leading you to 11B and 22B.
+	// - Step 2: You choose all of the right paths, leading you to 11Z and 22C.
+	// - Step 3: You choose all of the left paths, leading you to 11B and 22Z.
+	// - Step 4: You choose all of the right paths, leading you to 11Z and 22B.
+	// - Step 5: You choose all of the left paths, leading you to 11B and 22C.
+	// - Step 6: You choose all of the right paths, leading you to 11Z and 22Z.
 	example2 = strings.NewReader(`
 LR
 
@@ -102,7 +116,69 @@ func part1(input string) {
 	}
 }
 
-// part2:
+// part2: Simultaneously start on every node that ends with A. How many steps
+// does it take before you're only on nodes that end with Z?
 func part2(input string) {
-	panic("Unimplemented")
+	data := strings.Split(input, "\n")
+	instructions := data[0]
+	nodes := make(map[string]node, len(data[2:]))
+	for _, line := range data[2:] {
+		ff := strings.Fields(line)
+		nodes[ff[0]] = node{
+			name:  ff[0],
+			left:  ff[2][1:4],
+			right: ff[3][:3],
+		}
+	}
+
+	reduce := func(s []int, f func(int, int) int, initial int) int {
+		acc := initial
+		for _, v := range s {
+			acc = f(acc, v)
+		}
+		return acc
+	}
+
+	gcd := func(a, b int) int {
+		for b != 0 {
+			a, b = b, a%b
+		}
+		return a
+	}
+
+	lcm := func(a, b int) int {
+		return (a * b) / gcd(a, b)
+	}
+
+	findSteps := func(instructions, name string, nodes map[string]node) int {
+		steps := 0
+		for {
+			for _, dir := range instructions {
+				switch dir {
+				case 'R':
+					name = nodes[name].right
+				case 'L':
+					name = nodes[name].left
+				default:
+					panic("Impossible input")
+				}
+				steps++
+				if strings.HasSuffix(name, "Z") {
+					slog.Info("Got to '..Z'", "steps", steps)
+					return steps
+				}
+			}
+		}
+	}
+
+	var allSteps []int
+	for name := range nodes {
+		if !strings.HasSuffix(name, "A") {
+			continue
+		}
+		allSteps = append(allSteps, findSteps(instructions, name, nodes))
+		slog.Info("Gathered another set of steps", "node", name,
+			"Steps so far", allSteps)
+	}
+	slog.Info("Reduced steps", "least common multiple", reduce(allSteps, lcm, 1))
 }
