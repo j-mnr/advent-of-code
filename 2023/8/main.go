@@ -131,14 +131,6 @@ func part2(input string) {
 		}
 	}
 
-	reduce := func(s []int, f func(int, int) int, initial int) int {
-		acc := initial
-		for _, v := range s {
-			acc = f(acc, v)
-		}
-		return acc
-	}
-
 	gcd := func(a, b int) int {
 		for b != 0 {
 			a, b = b, a%b
@@ -180,5 +172,6 @@ func part2(input string) {
 		slog.Info("Gathered another set of steps", "node", name,
 			"Steps so far", allSteps)
 	}
-	slog.Info("Reduced steps", "least common multiple", reduce(allSteps, lcm, 1))
+	slog.Info("Reduced steps",
+		"least common multiple", util.SlicesReduce(allSteps, lcm, 1))
 }

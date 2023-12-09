@@ -25,3 +25,19 @@ func Must2[T any](t T, err error) T {
 	}
 	return t
 }
+
+func SlicesMap[S1 ~[]E1, S2 ~[]E2, E1, E2 any](s1 S1, mapFn func(E1) E2) S2 {
+	s2 := make([]E2, len(s1))
+	for i, e1 := range s1 {
+		s2[i] = mapFn(e1)
+	}
+	return s2
+}
+
+func SlicesReduce[S ~[]E, E any](s S, f func(E, E) E, initVal E) E {
+	acc := initVal
+	for _, v := range s {
+		acc = f(acc, v)
+	}
+	return acc
+}

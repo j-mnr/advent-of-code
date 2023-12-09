@@ -58,10 +58,10 @@ func Run(part uint8, example bool) {
 // you get if you multiply these numbers together?
 func part1(input string) {
 	tnd := strings.Split(input, "\n")
-	times := slicesMap[[]string, []int](strings.Fields(tnd[0])[1:], func(s string) int {
+	times := util.SlicesMap[[]string, []int](strings.Fields(tnd[0])[1:], func(s string) int {
 		return util.Must2(strconv.Atoi(s))
 	})
-	dists := slicesMap[[]string, []int](strings.Fields(tnd[1])[1:], func(s string) int {
+	dists := util.SlicesMap[[]string, []int](strings.Fields(tnd[1])[1:], func(s string) int {
 		return util.Must2(strconv.Atoi(s))
 	})
 	slog.Info("Starting values", "times", times, "distances", dists)
@@ -82,14 +82,6 @@ func part1(input string) {
 		product *= w
 	}
 	slog.Info("Calculated wins", "wins", wins, "result", product)
-}
-
-func slicesMap[S1 ~[]E1, S2 ~[]E2, E1, E2 any](s1 S1, mapFn func(E1) E2) S2 {
-	s2 := make([]E2, len(s1))
-	for i, e1 := range s1 {
-		s2[i] = mapFn(e1)
-	}
-	return s2
 }
 
 // part2: Now, you have to figure out how many ways there are to win this single
