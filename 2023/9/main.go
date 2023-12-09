@@ -4,6 +4,7 @@ import (
 	"aoc/util"
 	_ "embed"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -20,8 +21,11 @@ var (
 10 13 16 21 30 45
 `[1:])
 
-	// example2:
+	// example2: tl;dr: find the previous first value instead of the next last.
 	example2 = strings.NewReader(`
+0 3 6 9 12 15
+1 3 6 10 15 21
+10 13 16 21 30 45
 `[1:])
 
 	//go:embed input.txt
@@ -44,8 +48,37 @@ func Run(part uint8, example bool) {
 	}
 }
 
-// part1:
+// part1: Analyze your OASIS report and extrapolate the next value for each
+// history. What is the sum of these extrapolated values?
 func part1(input string) {
+	var results []int
+	for _, s := range makeSeries(input) {
+		results = append(results, collectDerivative(s))
+	}
+	slog.Info("Last of series collected", "sum", util.SlicesReduce(results,
+		func(a, b int) int {
+			return a + b
+		}, 0))
+}
+
+// part2: Analyze your OASIS report again, this time extrapolating the previous
+// value for each history. What is the sum of these extrapolated values?
+//
+// AKA - reverse it...
+func part2(input string) {
+
+	var results []int
+	for _, s := range makeSeries(input) {
+		slices.Reverse(s) // NOTE(jay): Only change
+		results = append(results, collectDerivative(s))
+	}
+	slog.Info("Last of series collected", "sum", util.SlicesReduce(results,
+		func(a, b int) int {
+			return a + b
+		}, 0))
+}
+
+func makeSeries(input string) [][]int {
 	lines := strings.Split(input, "\n")
 	series := make([][]int, len(lines))
 	for i, line := range lines {
@@ -55,17 +88,10 @@ func part1(input string) {
 			})...)
 	}
 	slog.Info("Mapped values", "series", series)
-	var results []int
-	for _, s := range series {
-		results = append(results, funcopop(s))
-	}
-	slog.Info("Last of series collected", "sum", util.SlicesReduce(results,
-	func(a, b int) int {
-		return a+b
-	}, 0))
+	return series
 }
 
-func funcopop(series []int) int {
+func collectDerivative(series []int) int {
 	lastVals := []int{series[len(series)-1]}
 	next := series
 	allZero := func(diffs []int) bool {
@@ -94,7 +120,3 @@ func funcopop(series []int) int {
 	panic("Impossible to get here!")
 }
 
-// part2:
-func part2(input string) {
-	panic("Unimplemented")
-}
