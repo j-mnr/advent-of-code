@@ -119,4 +119,3 @@ func collectDerivative(series []int) int {
 	}
 	panic("Impossible to get here!")
 }
-
