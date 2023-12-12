@@ -144,8 +144,8 @@ func dfs(
 		return depth
 	}
 
-	c := coord{y: search.y+next.y,  x: search.x+next.x}
-	t := rune(diagram[c.y][c.x]) 
+	c := coord{y: search.y + next.y, x: search.x + next.x}
+	t := rune(diagram[c.y][c.x])
 	*pipes = append(*pipes, &pipe{typ: t, coord: c})
 	return dfs(diagram, pipes, depth+1, c, followPipe(search, t))
 }

@@ -19,6 +19,19 @@ func PrepareInput(r io.Reader) string {
 	return buf.String()[:len(buf.String())-1]
 }
 
+type Number interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+		~float32 | ~float64
+}
+
+func Abs[N Number](n N) N {
+	if n < 0 {
+		n = -n
+	}
+	return n
+}
+
 func Must2[T any](t T, err error) T {
 	if err != nil {
 		panic(err)
