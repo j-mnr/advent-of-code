@@ -5,8 +5,8 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
-	"math"
 	"log/slog"
+	"math"
 	"strings"
 )
 
@@ -177,7 +177,7 @@ func expandBy(input string, expand int) [][]byte {
 		}
 		if !hasGalaxy {
 			for row := range img {
-					img[row] = append(img[row][:col], append(bytes.Repeat([]byte{space},
+				img[row] = append(img[row][:col], append(bytes.Repeat([]byte{space},
 					expand), img[row][col:]...)...)
 			}
 		}
