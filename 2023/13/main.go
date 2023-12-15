@@ -2,6 +2,7 @@ package thirteen
 
 import (
 	"aoc/util"
+	"bytes"
 	_ "embed"
 	"log/slog"
 	"strings"
@@ -74,6 +75,45 @@ var (
 
 	// example2:
 	example2 = strings.NewReader(`
+#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#
+
+.#.##.#.#
+.##..##..
+.#.##.#..
+#......##
+#......##
+.#.##.#..
+.##..##.#
+
+#..#....#
+###..##..
+.##.#####
+.##.#####
+###..##..
+#..#....#
+#..##...#
+
+#.##..##.
+..#.##.#.
+##..#...#
+##...#..#
+..#.##.#.
+..##..##.
+#.#.##.#.
 `[1:])
 
 	//go:embed input.txt
@@ -110,13 +150,12 @@ func Run(part uint8, example bool) {
 // number do you get after summarizing all of your notes?
 func part1(input string) {
 	sum := 0
-	for i, block := range strings.Split(input, "\n\n") {
-		pat := strings.Split(block, "\n")
-		n := findReflection(pat) * 100
+	for i, block := range bytes.Split([]byte(input), []byte("\n\n")) {
+		pat := bytes.Split(block, []byte("\n"))
+		n := findReflectionBytes(pat) * 100
 		if n == 0 {
-			pat = rotate(pat)
-			slog.Info("Row pattern not found", "block", i+1, "rotated", pat)
-			n = findReflection(pat)
+			slog.Info("Row pattern not found", "block", i+1)
+			n = findReflectionBytes(rotateBytes(pat))
 		}
 		sum += n
 	}
@@ -125,31 +164,39 @@ func part1(input string) {
 
 // part2:
 func part2(input string) {
-	panic("Unimplemented")
+	sum := 0
+	for i, block := range bytes.Split([]byte(input), []byte("\n\n")) {
+		pat := bytes.Split(block, []byte("\n"))
+		n := findReflectionBytes(pat) * 100
+		if n == 0 {
+			slog.Info("Row pattern not found", "block", i+1)
+			n = findReflectionBytes(rotateBytes(pat))
+		}
+		sum += n
+	}
+	slog.Error("Result", "sum", sum)
 }
 
-func rotate(pattern []string) []string {
+func rotateBytes(pattern [][]byte) [][]byte {
 	if len(pattern) == 0 || len(pattern[0]) == 0 {
 		return pattern
 	}
 
 	rows, cols := len(pattern), len(pattern[0])
-	result := make([]string, cols)
-
+	result := make([][]byte, cols)
 	for i := 0; i < cols; i++ {
 		build := make([]byte, rows)
 		for j := 0; j < rows; j++ {
 			build[j] = pattern[rows-j-1][i]
 		}
-		result[i] = string(build)
+		result[i] = build
 	}
-
 	return result
 }
 
-func findReflection(pattern []string) int {
+func findReflectionBytes(pattern [][]byte) int {
 	for i := 0; i < len(pattern)-1; i++ {
-		if isMirrored(pattern, i, i+1) {
+		if isMirroredBytes(pattern, i, i+1) {
 			slog.Info("Mirrored", "row 1", i+1, "row 2", i+2,
 				"line 1", pattern[i], "line 2", pattern[i+1])
 			return i + 1
@@ -158,9 +205,9 @@ func findReflection(pattern []string) int {
 	return 0
 }
 
-func isMirrored(pattern []string, i, j int) bool {
+func isMirroredBytes(pattern [][]byte, i, j int) bool {
 	for ; i > -1 && j < len(pattern); i, j = i-1, j+1 {
-		if pattern[i] != pattern[j] {
+		if !bytes.Equal(pattern[i], pattern[j]) {
 			return false
 		}
 	}
