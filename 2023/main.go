@@ -5,6 +5,7 @@ import (
 	"aoc/10"
 	"aoc/11"
 	"aoc/12"
+	"aoc/13"
 	"aoc/2"
 	"aoc/3"
 	"aoc/4"
@@ -102,5 +103,7 @@ func main() {
 		eleven.Run(uint8(partF), *exampleF)
 	case 12:
 		twelve.Run(uint8(partF), *exampleF)
+	case 13:
+		thirteen.Run(uint8(partF), *exampleF)
 	}
 }

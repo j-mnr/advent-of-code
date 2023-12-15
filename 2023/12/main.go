@@ -4,8 +4,8 @@ import (
 	"aoc/util"
 	_ "embed"
 	"log/slog"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -33,6 +33,12 @@ var (
 
 	// example2:
 	example2 = strings.NewReader(`
+???.### 1,1,3
+.??..??...?##. 1,1,3
+?#?#?#?#?#?#?#? 1,3,1,6
+????.#...#... 4,1,1
+????.######..#####. 1,6,5
+?###???????? 3,2,1
 `[1:])
 
 	//go:embed input.txt
@@ -82,7 +88,7 @@ func part1(input string) {
 		slog.Info("Parsing", "record", crs[i].record, "groups", crs[i].groups,
 			"possibilities", possibilities)
 	}
-	slog.Info("All possibilities", "result", sum)
+	slog.Error("All possibilities", "sum", sum)
 
 	for _, cr := range crs {
 		if _, found := crCache[cr.record]; found {
@@ -169,5 +175,33 @@ func calc(cr conditionRecord) int {
 
 // part2:
 func part2(input string) {
-	panic("Unimplemented")
+	var crs []conditionRecord
+	for i, line := range strings.Split(input, "\n") {
+		rNg := strings.Fields(line)
+		crs = append(crs, conditionRecord{
+			record: repeat(rNg[0], "?"),
+			groups: util.SlicesMap[[]string, []int](
+				strings.FieldsFunc(repeat(rNg[1], ","), func(r rune) bool {
+					return r == ','
+				}),
+				func(s string) int { return util.Must2(strconv.Atoi(s)) },
+			),
+		})
+
+		// possibilities := calc(crs[i])
+		// sum += possibilities
+		slog.Info("Parsing", "record", crs[i].record, "groups", crs[i].groups,
+			"possibilities", 0)
+	}
+}
+
+func repeat(s string, delim string) string {
+	var sb strings.Builder
+	for i := 0; i < 5; i++ {
+		sb.WriteString(s)
+		if i != 4 {
+			sb.WriteString(delim)
+		}
+	}
+	return sb.String()
 }

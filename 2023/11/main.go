@@ -119,7 +119,7 @@ func part1(input string) {
 			sum += y + x
 		}
 	}
-	slog.Info("Results", "sum", sum)
+	slog.Error("Result", "sum", sum)
 }
 
 func printImg(img [][]byte) {
@@ -152,7 +152,7 @@ func part2(input string) {
 	for i := float64(0); i < 6; i++ {
 		sum += (constant * math.Pow(10, i))
 	}
-	slog.Info("Results", "constant", int64(constant), "scaled", int64(sum))
+	slog.Error("Result", "constant", int64(constant), "scaled", int64(sum))
 }
 
 func expandBy(input string, expand int) [][]byte {
