@@ -152,32 +152,76 @@ func part1(input string) {
 	sum := 0
 	for i, block := range bytes.Split([]byte(input), []byte("\n\n")) {
 		pat := bytes.Split(block, []byte("\n"))
-		n := findReflectionBytes(pat) * 100
+		n := findReflection(pat) * 100
 		if n == 0 {
 			slog.Info("Row pattern not found", "block", i+1)
-			n = findReflectionBytes(rotateBytes(pat))
+			n = findReflection(rotate(pat))
 		}
 		sum += n
 	}
 	slog.Error("Result", "sum", sum)
+}
+
+func findReflection(pattern [][]byte) int {
+	for i := 0; i < len(pattern)-1; i++ {
+		if isMirrored(pattern, i, i+1) {
+			slog.Info("Mirrored", "row 1", i+1, "row 2", i+2,
+				"line 1", pattern[i], "line 2", pattern[i+1])
+			return i + 1
+		}
+	}
+	return 0
 }
 
 // part2:
 func part2(input string) {
 	sum := 0
-	for i, block := range bytes.Split([]byte(input), []byte("\n\n")) {
+	for i, block := range bytes.Split([]byte(input), []byte("\n\n"))[0:2] {
 		pat := bytes.Split(block, []byte("\n"))
-		n := findReflectionBytes(pat) * 100
+		n := findSmudge(pat) * 100
 		if n == 0 {
 			slog.Info("Row pattern not found", "block", i+1)
-			n = findReflectionBytes(rotateBytes(pat))
+			n = findSmudge(rotate(pat))
 		}
 		sum += n
 	}
 	slog.Error("Result", "sum", sum)
 }
 
-func rotateBytes(pattern [][]byte) [][]byte {
+func findSmudge(pattern [][]byte) int {
+	flip := func(pattern [][]byte, i, j int) {
+		switch pattern[i][j] {
+		case ash:
+			pattern[i][j] = rock
+		case rock:
+			pattern[i][j] = ash
+		default:
+			panic("Impossible character: " + string(pattern[i]))
+		}
+	}
+	n, m := len(pattern)-1, len(pattern[0])
+	for j := 0; j < m; j++ {
+		for i := 0; i < n; i++ {
+			original := pattern[i]
+			flip(pattern, i, j)
+			for k := 0; k < n; k++ {
+				slog.Info("Flipped",
+					"line 1", pattern[k], "line 2", pattern[k+1],
+				)
+				if isMirrored(pattern, k, k+1) {
+					slog.Info("Mirrored", "row 1", k+1, "row 2", k+2,
+						"line 1", pattern[k], "line 2", pattern[k+1])
+					pattern[i] = original
+					return k + 1
+				}
+			}
+			pattern[i] = original
+		}
+	}
+	return 0
+}
+
+func rotate(pattern [][]byte) [][]byte {
 	if len(pattern) == 0 || len(pattern[0]) == 0 {
 		return pattern
 	}
@@ -194,18 +238,7 @@ func rotateBytes(pattern [][]byte) [][]byte {
 	return result
 }
 
-func findReflectionBytes(pattern [][]byte) int {
-	for i := 0; i < len(pattern)-1; i++ {
-		if isMirroredBytes(pattern, i, i+1) {
-			slog.Info("Mirrored", "row 1", i+1, "row 2", i+2,
-				"line 1", pattern[i], "line 2", pattern[i+1])
-			return i + 1
-		}
-	}
-	return 0
-}
-
-func isMirroredBytes(pattern [][]byte, i, j int) bool {
+func isMirrored(pattern [][]byte, i, j int) bool {
 	for ; i > -1 && j < len(pattern); i, j = i-1, j+1 {
 		if !bytes.Equal(pattern[i], pattern[j]) {
 			return false
