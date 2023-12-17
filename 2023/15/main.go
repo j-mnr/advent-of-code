@@ -4,6 +4,7 @@ import (
 	"aoc/util"
 	_ "embed"
 	"log/slog"
+	"slices"
 	"strings"
 )
 
@@ -26,8 +27,51 @@ var (
 rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
 `[1:])
 
-	// example2:
+	// example2:  Here is the contents of every box after each step in the example
+	// initialization sequence above:
+	//
+	// After "rn=1":
+	// Box 0: [rn 1]
+	//
+	// After "cm-":
+	// Box 0: [rn 1]
+	//
+	// After "qp=3":
+	// Box 0: [rn 1]
+	// Box 1: [qp 3]
+	//
+	// After "cm=2":
+	// Box 0: [rn 1] [cm 2]
+	// Box 1: [qp 3]
+	//
+	// After "qp-":
+	// Box 0: [rn 1] [cm 2]
+	//
+	// After "pc=4":
+	// Box 0: [rn 1] [cm 2]
+	// Box 3: [pc 4]
+	//
+	// After "ot=9":
+	// Box 0: [rn 1] [cm 2]
+	// Box 3: [pc 4] [ot 9]
+	//
+	// After "ab=5":
+	// Box 0: [rn 1] [cm 2]
+	// Box 3: [pc 4] [ot 9] [ab 5]
+	//
+	// After "pc-":
+	// Box 0: [rn 1] [cm 2]
+	// Box 3: [ot 9] [ab 5]
+	//
+	// After "pc=6":
+	// Box 0: [rn 1] [cm 2]
+	// Box 3: [ot 9] [ab 5] [pc 6]
+	//
+	// After "ot=7":
+	// Box 0: [rn 1] [cm 2]
+	// Box 3: [ot 7] [ab 5] [pc 6]
 	example2 = strings.NewReader(`
+rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
 `[1:])
 
 	//go:embed input.txt
@@ -67,18 +111,95 @@ func part1(input string) {
 	}) {
 
 		sum := 0
-		for _, r := range step {
-			sum += int(r)
-			sum *= 17
-			sum %= 256
-		}
+		hash(step)
 		total += sum
 		sums = append(sums, sum)
 	}
 	slog.Error("Result", "total", total)
 }
 
-// part2:
+// part2: The book goes on to describe a series of 256 boxes numbered 0 through
+// 255. The boxes are arranged in a line starting from the point where light
+// enters the facility. The boxes have holes that allow light to pass from one
+// box to the next all the way down the line.
+//
+// The book goes on to explain how to perform each step in the initialization
+// sequence, a process it calls the Holiday ASCII String Helper Manual
+// Arrangement Procedure, or HASHMAP for short.
+//
+// The focusing power of a single lens is the result of multiplying together:
+//
+// - One plus the box number of the lens in question.
+// - The slot number of the lens within the box: 1 for the first lens, 2 for the
+// second lens, and so on.
+// - The focal length of the lens.
+//
+// What is the focusing power of the resulting lens configuration?
 func part2(input string) {
-	panic("Unimplemented")
+	const (
+		opEq   = '='
+		opDash = '-'
+	)
+	type lens struct {
+		label  string
+		length uint8 // length 1-9
+	}
+	boxes := [256][]lens{}
+	for _, step := range strings.FieldsFunc(input, func(r rune) bool {
+		return r == ','
+	}) {
+		i := strings.LastIndexAny(step, string([]byte{opEq, opDash}))
+		if i == -1 {
+			panic("Bad step: " + step)
+		}
+		lbl := step[:i]
+		var op, leng byte
+		op = step[i]
+		if op == opEq {
+			leng = step[i+1] - '0'
+		}
+		slog.Info("Hashing", "result", hash(lbl))
+
+		hsh := hash(lbl)
+		i = slices.IndexFunc(boxes[hsh], func(l lens) bool {
+			return l.label == step[:i]
+		})
+		switch op {
+		case opEq:
+			if i == -1 {
+				boxes[hsh] = append(boxes[hsh], lens{label: lbl, length: leng})
+				continue
+			}
+			boxes[hsh][i] = lens{label: lbl, length: leng}
+		case opDash:
+			if i == -1 {
+				continue
+			}
+			boxes[hsh] = append(boxes[hsh][:i], boxes[hsh][i+1:]...)
+		default:
+			panic("Bad Operator: " + string(op))
+		}
+	}
+
+	total := 0
+	for i, box := range boxes {
+		if len(box) == 0 {
+			continue
+		}
+		slog.Info("Found", "n", i+1, "box", box)
+		for k, lens := range box {
+			total += (i+1) * (k+1) * int(lens.length)
+		}
+	}
+	slog.Error("Result", "total", total)
+}
+
+func hash(step string) int {
+	result := 0
+	for _, r := range step {
+		result += int(r)
+		result *= 17
+		result %= 256
+	}
+	return result
 }
