@@ -139,9 +139,9 @@ func part2(input string) {
 		cycleOfCycles = append(cycleOfCycles, sum)
 		// Reliably break when cycle found.
 	}
-	blindGuess := (1_000_000_000-16)%(end-initial)
+	blindGuess := (1_000_000_000 - 16) % (end - initial)
 	slog.Error("I hate math", "NO idea", blindGuess,
-	"between these values", cycleOfCycles[initial:end])
+		"between these values", cycleOfCycles[initial:end])
 }
 
 func cycle(platform [][]byte, times int) int {
