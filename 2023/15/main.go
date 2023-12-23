@@ -188,7 +188,7 @@ func part2(input string) {
 		}
 		slog.Info("Found", "n", i+1, "box", box)
 		for k, lens := range box {
-			total += (i+1) * (k+1) * int(lens.length)
+			total += (i + 1) * (k + 1) * int(lens.length)
 		}
 	}
 	slog.Error("Result", "total", total)
