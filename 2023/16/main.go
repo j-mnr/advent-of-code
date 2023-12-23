@@ -2,6 +2,7 @@ package sixteen
 
 import (
 	"aoc/util"
+	"context"
 	_ "embed"
 	"fmt"
 	"log/slog"
@@ -21,6 +22,22 @@ const (
 type mirrors []mirror
 
 func (m mirrors) String() string { return string(m) }
+
+type position struct{ row, col int }
+
+type direction struct{ y, x int }
+
+var (
+	up    = direction{y: -1, x: 0}
+	down  = direction{y: 1, x: 0}
+	left  = direction{y: 0, x: -1}
+	right = direction{y: 0, x: 1}
+)
+
+type coord struct {
+	p position
+	d direction
+}
 
 var (
 	// example1:
@@ -63,6 +80,16 @@ var (
 
 	// example2:
 	example2 = strings.NewReader(`
+.|...\....
+|.-.\.....
+.....|-...
+........|.
+..........
+.........\
+..../.\\..
+.-.-/..|..
+.|....-|.\
+..//.|....
 `[1:])
 
 	//go:embed input.txt
@@ -106,6 +133,42 @@ func part1(input string) {
 			}
 		}
 	}
+
+	energized := make([][]byte, len(contraption))
+	for i := range energized {
+		energized[i] = make([]byte, len(contraption[i]))
+		for k := range energized[i] {
+			energized[i][k] = '.'
+		}
+	}
+	doWork(contraption, energized, coord{p: position{0, 0}, d: right})
+
+	var sum uint
+	for _, line := range energized {
+		for _, b := range line {
+			if b == '#' {
+				sum++
+			}
+		}
+	}
+	slog.Error("Result", "sum", sum)
+}
+
+// part2:
+func part2(input string) {
+	var contraption []mirrors
+	for i, line := range strings.Split(input, "\n") {
+		contraption = append(contraption, make(mirrors, len(line)))
+		for j, r := range line {
+			switch mirror(r) {
+			case empty, diagL, dRight, vSplt, hSplt:
+				contraption[i][j] = mirror(r)
+			default:
+				panic("Impossible mirror " + string(r))
+			}
+		}
+	}
+
 	energized := make([][]byte, len(contraption))
 	for i := range energized {
 		energized[i] = make([]byte, len(contraption[i]))
@@ -114,22 +177,61 @@ func part1(input string) {
 		}
 	}
 
-	type direction struct{ y, x int }
-	var (
-		up    = direction{y: -1, x: 0}
-		down  = direction{y: 1, x: 0}
-		left  = direction{y: 0, x: -1}
-		right = direction{y: 0, x: 1}
-	)
-
-	type position struct{ row, col int }
-
-	type coord struct {
-		p position
-		d direction
+	sum := func(energized [][]byte) uint {
+		var sum uint
+		for i, line := range energized {
+			for j, b := range line {
+				if b == '#' {
+					sum++
+				}
+				energized[i][j] = '.'
+			}
+		}
+		return sum
 	}
 
-	stack := []coord{{p: position{0, 0}, d: right}}
+	var maxSum uint
+
+	lastRow := len(contraption)-1
+	for col := 0; col < len(contraption[0]); col++ {
+		doWork(contraption, energized, coord{
+			p: position{row: 0, col: col},
+			d: down,
+		})
+		if s := sum(energized); s > maxSum {
+			maxSum = s
+		}
+		doWork(contraption, energized, coord{
+			p: position{row: lastRow, col: col},
+			d: up,
+		})
+		if s := sum(energized); s > maxSum {
+			maxSum = s
+		}
+	}
+
+	lastCol := len(contraption[0]) - 1
+	for row := 0; row < len(contraption); row++ {
+		doWork(contraption, energized, coord{
+			p: position{row: row, col: 0},
+			d: right,
+		})
+		if s := sum(energized); s > maxSum {
+			maxSum = s
+		}
+		doWork(contraption, energized, coord{
+			p: position{row: row, col: lastCol},
+			d: left,
+		})
+		if s := sum(energized); s > maxSum {
+			maxSum = s
+		}
+	}
+	slog.Error("Result", "sum", maxSum)
+}
+
+func doWork(contraption []mirrors, energized [][]byte, start coord) {
+	stack := []coord{start}
 	for len(stack) != 0 {
 		c := stack[0]
 		stack = stack[1:]
@@ -224,25 +326,14 @@ func part1(input string) {
 		energized[c.p.row][c.p.col] = '#'
 	}
 
-	slog.Info("Contraption")
-	for _, line := range contraption {
-		fmt.Println(string(line))
-	}
-
-	var sum uint
-	slog.Info("Energized")
-	for _, line := range energized {
-		fmt.Println(string(line))
-		for _, b := range line {
-			if b == '#' {
-				sum++
-			}
+	if slog.Default().Enabled(context.Background(), slog.LevelInfo) {
+		slog.Info("Contraption")
+		for _, line := range contraption {
+			fmt.Println(string(line))
+		}
+		slog.Info("Energized")
+		for _, line := range energized {
+			fmt.Println(string(line))
 		}
 	}
-	slog.Error("Result", "sum", sum)
-}
-
-// part2:
-func part2(input string) {
-	panic("Unimplemented")
 }
