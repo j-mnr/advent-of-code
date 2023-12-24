@@ -192,7 +192,7 @@ func part2(input string) {
 
 	var maxSum uint
 
-	lastRow := len(contraption)-1
+	lastRow := len(contraption) - 1
 	for col := 0; col < len(contraption[0]); col++ {
 		doWork(contraption, energized, coord{
 			p: position{row: 0, col: col},
