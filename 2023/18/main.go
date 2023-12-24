@@ -2,9 +2,7 @@ package eighteen
 
 import (
 	"aoc/util"
-	"bytes"
 	_ "embed"
-	"fmt"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -13,9 +11,8 @@ import (
 var (
 	// example1:
 	example1 = strings.NewReader(`
-U 6 (#70c710)
 R 6 (#70c710)
-D 11 (#0dc571)
+D 5 (#0dc571)
 L 2 (#5713f0)
 D 2 (#d2c081)
 R 2 (#59c680)
@@ -81,104 +78,36 @@ func (d direction) String() string {
 // part1:
 // XXX: 54632 too high
 func part1(input string) {
-	type order struct {
-		dir  direction
-		move int
-	}
+	type coord struct{ x, y int }
 
-	newOrder := func(fields []string) order {
-		var o order
-		switch direction(fields[0][0]) {
-		case left, right, up, down:
-			o.dir = direction(fields[0][0])
-		default:
-			panic("Invalid direction " + string(fields[0]))
-		}
-		o.move = util.Must2(strconv.Atoi(fields[1]))
-		return o
-	}
-
-	var orders []order
-	position := struct{ y, x int }{}
-	var minX, minY, maxX, maxY int
+	coords := []coord{{0, 0}}
+	var x, y int
 	for _, line := range strings.Split(input, "\n") {
-		o := newOrder(strings.Fields(line))
-		orders = append(orders, o)
-		slog.Info("New world", "order", o)
-		switch o.dir {
+		f := strings.Fields(line)
+		switch f[0][0] {
 		case left:
-			position.x -= o.move
-			if position.x < minX {
-				minX = position.x
-			}
+			x -= util.Must2(strconv.Atoi(f[1]))
 		case right:
-			position.x += o.move
-			if position.x > maxX {
-				maxX = position.x
-			}
+			x += util.Must2(strconv.Atoi(f[1]))
 		case up:
-			position.y -= o.move
-			if position.y < minY {
-				minY = position.y
-			}
+			y -= util.Must2(strconv.Atoi(f[1]))
 		case down:
-			position.y += o.move
-			if position.y > maxY {
-				maxY = position.y
-			}
+			y += util.Must2(strconv.Atoi(f[1]))
+		default:
+			panic("Impossible direction " + string(f[0][0]))
 		}
+		coords = append(coords, coord{x: x, y: y})
 	}
-
-	digPlan := make([][]byte, maxY-minY+1)
-	for i := range digPlan {
-		digPlan[i] = make([]byte, maxX-minX+1)
-		for k := range digPlan[i] {
-			digPlan[i][k] = '.'
-		}
+	// coords = []coord{{-2, -2}, {0, 4}, {3, -1}, {1, -1}}
+	sum1, sum2 := 0, 0
+	for i := 0; i < len(coords)-1; i++ {
+		c1, c2 := coords[i], coords[i+1]
+		// xn-1 * yn - xn * yn-1
+		sum1 += c1.x*c2.y
+		sum2 += c1.y*c2.x
 	}
-
-	// Impossible to go OOB for digPlan at this point.
-	row, col := -minY, -minX
-	for _, order := range orders {
-		switch order.dir {
-		case up:
-			r := row
-			for ; r >= row-order.move; r-- {
-				digPlan[r][col] = '#'
-			}
-			row = r + 1
-		case down:
-			r := row
-			for ; r <= row+order.move; r++ {
-				digPlan[r][col] = '#'
-			}
-			row = r - 1
-		case left:
-			// slog.Info("Made it here", "row", row, "col", col, "move", order.move,
-			// "condition GT", col - order.move)
-			c := col
-			for ; c >= col-order.move; c-- {
-				digPlan[row][c] = '#'
-			}
-			col = c + 1
-		case right:
-			c := col
-			for ; c <= col+order.move; c++ {
-				digPlan[row][c] = '#'
-			}
-			col = c - 1
-		}
-	}
-
-	for _, line := range digPlan {
-		fmt.Println(string(line))
-	}
-	sum := 0
-	marker := []byte{'#'}
-	for _, line := range digPlan {
-		sum += (bytes.LastIndex(line, marker) - bytes.Index(line, marker) + 1)
-	}
-	slog.Error("Result", "sum", sum)
+	slog.Error("Result", "coords", coords, "sum1", sum1, "sum2", sum2, "minus",
+	(sum1-sum2)/2)
 }
 
 // part2:
