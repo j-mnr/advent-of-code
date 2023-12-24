@@ -76,6 +76,7 @@ func (d direction) String() string {
 }
 
 // part1:
+// https://www.themathdoctors.org/polygon-coordinates-and-areas/
 // XXX: 54632 too high
 func part1(input string) {
 	type coord struct{ x, y int }
