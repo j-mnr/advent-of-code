@@ -267,7 +267,7 @@ func part2(input string) {
 			}
 		}
 	}
-	slog.Info("I want the", "pipes", pipes, "Inside should be", insideCount)
+	slog.Error("I want the", "pipes", pipes, "Inside should be", insideCount)
 }
 
 func mapTypeFrom(d1, d2 coord) rune {
